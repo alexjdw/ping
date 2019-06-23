@@ -1,10 +1,6 @@
 import pygame
-import pygame.gfxdraw
 from math import sin, cos, copysign, sqrt
 
-def crt(x):
-    if 0<=x: return x**(1./3.)
-    return -(-x)**(1./3.)
 
 class Drawable:
     def __init__(self, width, height, posx, posy, image=None):
@@ -125,6 +121,15 @@ class Ball3D(Shape3D, Point3D):
     def draw(self, target):
         if not self.pos3d[2] <= 0: # Draw nothing as the object is behind the camera.
             pygame.draw.circle(target, self.color, self.pos, self.radius // self.pos3d[2])
+
+
+class Composite:
+    def __init__(self, *args):
+        self.drawables = args
+
+    def draw(self, target):
+        for d in drawables:
+            d.draw(target)
 
 
 class Interactable(Drawable):
