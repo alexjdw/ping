@@ -1,18 +1,19 @@
 import pygame
 from .drawable import *
+from .pallette import *
 
 WIDTH = 2560 // 4
 HEIGHT = 1440 // 4
 
-table_color = pygame.Color(0, 120, 120, 1)
+table_color = C_TABLE_GREEN
 
 player = Mobile(200, 300, 0, 0)
 player.drag = 1
 player_rect = pygame.Rect(0, 0, 100, 150)
 player_pad = pygame.Rect(100, 60, 50, 50)
-pygame.draw.rect(player.surface, pygame.Color(120, 90, 80, 1), player_rect)
-pygame.draw.rect(player.surface, pygame.Color(200, 25, 25, 1), player_pad)
-player.surface.set_colorkey((0, 0, 0))
+pygame.draw.rect(player.surface, C_DARK_TAN, player_rect)
+pygame.draw.rect(player.surface, C_TAN, player_pad)
+player.surface.set_colorkey(C_BLACK)
 player.pos = ((WIDTH - 100) / 2, HEIGHT - 150)
 
 # table = Drawable(WIDTH, HEIGHT, 0, 0)
@@ -50,5 +51,5 @@ net_points = [
         Point3D(s, table_offset_x, table_offset_y, net_z)
         ]
 
-table = Shape3D(table_points, table_color)
+table = Shape3D(table_points, C_TABLE_GREEN)
 net = Shape3D(net_points, pygame.Color(220, 220, 220, 1))

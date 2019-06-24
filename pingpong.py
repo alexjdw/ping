@@ -2,11 +2,13 @@ import pygame
 import pygame.gfxdraw
 import numpy as np
 from pingpong.testobjs import player, table, net
-from pingpong.PingPongBall import PingPongBall
-from math import copysign
+from pingpong.drawables.PingPongBall import PingPongBall
+from pingpong.pallette import C_WHITE
 
 WIDTH = 2560 // 4
 HEIGHT = 1440 // 4
+
+GAME_PACE = 1.
 
 pygame.init()
 gameDisplay = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -16,8 +18,8 @@ clock = pygame.time.Clock()
 player_exited = False
 black = (0, 0, 0)
 
-ball = PingPongBall(gameDisplay, 400, 20, 20, 20, pygame.Color(255,255,255,1))
-ball.vector = np.array([2, 4, 3])
+ball = PingPongBall(gameDisplay, 400, 20, 20, 20, C_WHITE)
+ball.vector = np.array([.3, .7, 6])
 # Ordered!
 drawables = [table, net, ball, player]
 
@@ -39,9 +41,11 @@ while not player_exited:
         elif (hasattr(d, 'surface')):
             gameDisplay.blit(d.surface, d.pos)
         else:
-            raise TypeError("Drawable " + repr(d) + " has no applicable drawing methods.")
+            raise TypeError("Drawable " + repr(d) + " can't be drawn. Please add a .survace or .draw() method.")
         if (hasattr(d, 'move')):
             d.move()
+
+    ball.check_collision(table)
 
     pygame.display.update()
     clock.tick(60)
