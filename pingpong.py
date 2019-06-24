@@ -2,7 +2,7 @@ import pygame
 import pygame.gfxdraw
 import numpy as np
 from pingpong.testobjs import player, table, net
-from pingpong.drawables.PingPongBall import PingPongBall
+from pingpong.drawable import PingPongBall
 from pingpong.pallette import C_WHITE
 
 WIDTH = 2560 // 4

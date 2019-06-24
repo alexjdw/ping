@@ -1,3 +1,4 @@
+import pygame, numpy as np
 from ..utils import ReprMixin
 
 

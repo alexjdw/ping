@@ -1,3 +1,4 @@
+import pygame, numpy as np
 from .Shape3D import Shape3D
 from .Point3D import Point3D
 
