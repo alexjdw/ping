@@ -1,7 +1,8 @@
 import pygame
 import pygame.gfxdraw
-from pingpong.testobjs import player, table
-from pingpong.drawable import Ball3D
+import numpy as np
+from pingpong.testobjs import player, table, net
+from pingpong.PingPongBall import PingPongBall
 from math import copysign
 
 WIDTH = 2560 // 4
@@ -15,10 +16,10 @@ clock = pygame.time.Clock()
 player_exited = False
 black = (0, 0, 0)
 
-ball = Ball3D(gameDisplay, 400, 20, 20, 20, pygame.Color(255,255,255,1))
-ball.vector = (0, 0, 1)
+ball = PingPongBall(gameDisplay, 400, 20, 20, 20, pygame.Color(255,255,255,1))
+ball.vector = np.array([2, 4, 3])
 # Ordered!
-drawables = [table, ball, player]
+drawables = [table, net, ball, player]
 
 while not player_exited:
     for event in pygame.event.get():

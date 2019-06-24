@@ -1,5 +1,5 @@
 import pygame
-from .drawable import Drawable, Mobile, Ball3D, Point3D
+from .drawable import *
 
 WIDTH = 2560 // 4
 HEIGHT = 1440 // 4
@@ -25,17 +25,30 @@ player.pos = ((WIDTH - 100) / 2, HEIGHT - 150)
 #           ]
 # pygame.draw.polygon(table.surface, table_color, points)
 
-table_scale = 50
+table_scale = 280
 table_h = .76 * table_scale
 table_w = 1.525 * table_scale
 table_z = 2.74 * table_scale
-table_offset_x = 200
-table_offset_y = 400
+table_offset_x = WIDTH // 2 - table_w // 2
+table_offset_y = HEIGHT // 2 + table_h
 table_offset_z = 25
+net_height = .1525 * table_scale
+net_z = table_offset_z + table_z // 2
 
+s = pygame.Surface((WIDTH, HEIGHT))
 table_points = [
-        Point3D(table_offset_x, table_offset_y + table_h, table_offset_z),
-        Point3D(table_offset_x + table_w, table_offset_y + table_h, table_offset_z),
-        Point3D(table_offset_x + table_w, table_offset_y + table_h, table_offset_z + table_z),
-        Point3D(table_offset_x, table_offset_y + table_h, table_offset_z + table_z)
+        Point3D(s, table_offset_x, table_offset_y, table_offset_z),
+        Point3D(s, table_offset_x + table_w, table_offset_y, table_offset_z),
+        Point3D(s, table_offset_x + table_w, table_offset_y, table_offset_z + table_z),
+        Point3D(s, table_offset_x, table_offset_y, table_offset_z + table_z)
         ]
+
+net_points = [
+        Point3D(s, table_offset_x, table_offset_y - net_height, net_z),
+        Point3D(s, table_offset_x + table_w, table_offset_y - net_height, net_z),
+        Point3D(s, table_offset_x + table_w, table_offset_y, net_z),
+        Point3D(s, table_offset_x, table_offset_y, net_z)
+        ]
+
+table = Shape3D(table_points, table_color)
+net = Shape3D(net_points, pygame.Color(220, 220, 220, 1))
