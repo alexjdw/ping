@@ -1,7 +1,7 @@
 import pygame
 import pygame.gfxdraw
 import numpy as np
-from pingpong.testobjs import player, table, net
+from pingpong.game_objects.testobjs import player, table, net
 from pingpong.drawable import PingPongBall
 from pingpong.pallette import C_WHITE
 

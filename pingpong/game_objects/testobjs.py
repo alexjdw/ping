@@ -52,4 +52,4 @@ net_points = [
         ]
 
 table = Shape3D(table_points, C_TABLE_GREEN)
-net = Shape3D(net_points, pygame.Color(220, 220, 220, 1))
+net = Shape3D(net_points, C_WHITESMOKE)
