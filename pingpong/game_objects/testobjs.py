@@ -1,6 +1,6 @@
 import pygame
-from .drawable import *
-from .pallette import *
+from ..drawable import Mobile, Point3D, Shape3D
+from ..pallette import C_TABLE_GREEN, C_TAN, C_DARK_TAN, C_BLACK, C_WHITE, C_WHITESMOKE
 
 WIDTH = 2560 // 4
 HEIGHT = 1440 // 4
