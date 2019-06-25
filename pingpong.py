@@ -1,12 +1,10 @@
 import pygame
 import pygame.gfxdraw
 import numpy as np
-from pingpong.game_objects.testobjs import player, table, net
+from pingpong.game_objects.testobjs import player, table, net, ball
 from pingpong.drawable import PingPongBall
 from pingpong.pallette import C_WHITE
-
-WIDTH = 2560 // 4
-HEIGHT = 1440 // 4
+from pingpong.constants import WIDTH, HEIGHT
 
 GAME_PACE = 1.
 
@@ -18,10 +16,8 @@ clock = pygame.time.Clock()
 player_exited = False
 black = (0, 0, 0)
 
-ball = PingPongBall(gameDisplay, 400, 20, 20, 20, C_WHITE)
-ball.vector = np.array([.3, .7, 6])
 # Ordered!
-drawables = [table, net, ball, player]
+drawables = [ball, net, player, table]
 
 while not player_exited:
     for event in pygame.event.get():

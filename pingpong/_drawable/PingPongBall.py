@@ -1,9 +1,9 @@
 from .Ball3D import Ball3D
 from ..utils import vector
 import numpy as np
-from math import copysign
 
 perp = vector.perpendicular_vector
+
 
 class PingPongBall(Ball3D):
     def __init__(self, *args):
@@ -16,7 +16,7 @@ class PingPongBall(Ball3D):
         # negative.
         self.topspin = 0
         self.sidespin = 0
-        self.gravity = .6
+        self.gravity = 0
 
         self.debug = 0
 

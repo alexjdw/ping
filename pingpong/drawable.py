@@ -7,3 +7,4 @@ from ._drawable.Mobile import Mobile
 from ._drawable.PingPongBall import PingPongBall
 from ._drawable.Point3D import Point3D
 from ._drawable.Shape3D import Shape3D
+from ._drawable.Menu import Menu

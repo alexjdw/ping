@@ -1,6 +1,8 @@
 import pygame, numpy as np
 from .Shape3D import Shape3D
 from .Point3D import Point3D
+from ..constants import WIDTH, HEIGHT
+from ..utils import vector
 
 
 class Ball3D(Shape3D, Point3D):
@@ -14,5 +16,8 @@ class Ball3D(Shape3D, Point3D):
         self.parent = parent
 
     def draw(self, target):
+        scale = vector.dist(self.pos3d,
+                     np.array([self.parent.get_width(),
+                               self.parent.get_height(), 0])) ** .33
         if not self.pos3d[2] <= 0:  # Draw nothing as the object is behind the camera.
-            pygame.draw.circle(target, self.color, self.pos, int(self.radius / self.pos3d[2]))
+            pygame.draw.circle(target, self.color, self.pos, int(self.radius / scale))
