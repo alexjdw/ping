@@ -1,11 +1,11 @@
-from .Ball3D import Ball3D
+from .Sphere3D import Sphere3D
 from ..utils import vector
 import numpy as np
 
 perp = vector.perpendicular_vector
 
 
-class PingPongBall(Ball3D):
+class PingPongBall(Sphere3D):
     def __init__(self, *args):
         super().__init__(*args)
         # Note: The rotation effect is applied perpendicular to the direction

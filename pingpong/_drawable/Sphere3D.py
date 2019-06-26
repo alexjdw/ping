@@ -5,7 +5,7 @@ from ..constants import WIDTH, HEIGHT
 from ..utils import vector
 
 
-class Ball3D(Shape3D, Point3D):
+class Sphere3D(Shape3D, Point3D):
     "A sphere represented by a point and a radius."
     def __init__(self, parent, radius, posx, posy, posz, color):
         self.pos3d = np.array([posx, posy, posz])

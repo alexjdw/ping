@@ -1,6 +1,6 @@
 'A collection of drawable objects. Objects implement .surface or .draw()'
 
-from ._drawable.Ball3D import Ball3D
+from ._drawable.Sphere3D import Sphere3D
 from ._drawable.Composite import Composite
 from ._drawable.Interactable import Interactable
 from ._drawable.Mobile import Mobile
