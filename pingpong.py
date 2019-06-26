@@ -3,9 +3,9 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 import numpy as np
 # from pingpong.game_objects.testobjs import player, table, net, ball
-from pingpong.drawable import PingPongBall, Point3D, Shape3D
-from pingpong.pallette import C_WHITE
-from pingpong.constants import WIDTH, HEIGHT
+from gl.drawable import PingPongBall, Point3D, Shape3D
+from gl.pallette import C_WHITE
+from gl.constants import WIDTH, HEIGHT
 
 # Game Variables
 GAME_PACE_SCALAR = 1.
