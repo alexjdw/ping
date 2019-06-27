@@ -1,7 +1,7 @@
 import pygame
 import numpy as np
 # from pingpong.game_objects.testobjs import player, table, net, ball
-from gl.drawable import PingPongBall, Point3D, Shape3D
+from gl.drawable import PingPongBall, Point3D, Shape3D, Shape2D
 from gl.pallette import C_WHITE
 from gl.constants import WIDTH, HEIGHT
 from gameloop.GameLoop import GameLoop
@@ -17,11 +17,25 @@ clock = pygame.time.Clock()
 
 # Ordered!
 # drawables = [ball, net, player, table]
-drawables = {Shape3D([Point3D(0.1, 0.1, .5), 
-                      Point3D(0.3, 0.1, .5),
-                      Point3D(0.3, 0.2, .5),
-                      Point3D(0.1, 0.2, .5)], 
-                      (120,120,15)),
+s1 = Shape2D(
+    [
+        Point3D(0.4, 0.4, .5), 
+        Point3D(0.4, 0.6, .5),
+        Point3D(0.6, 0.6, .5),
+        Point3D(0.6, 0.4, .5)
+    ],
+    (120, 120, 15)
+)
+s2 = Shape2D([
+        Point3D(0.1, 0.1, .12), 
+        Point3D(0.1, 0.2, .12),
+        Point3D(0.2, 0.2, .12),
+        Point3D(0.2, 0.1, .12)
+        ],
+    (120, 120, 15)
+)
+
+drawables = {Shape3D([s1, s2], (120, 120, 15)),
              Point3D(0.2, 0.2, .5)}
 
 with GameLoop(drawables) as loop:

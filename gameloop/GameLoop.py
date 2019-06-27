@@ -56,11 +56,15 @@ class GameLoop:
 
         # OpenGL setup.
         # Set perspective, aspect ratio, clipping bounds
-        gluPerspective(45, (display.get_width() / display.get_height()), 0.2, 10.)
+        gluPerspective(45,
+                       (display.get_width() / display.get_height()),
+                       0.1,
+                       50.)
         # Zoom out a bit.
-        glTranslatef(0., 0., -1.)  # zoom out a bit
+        glTranslatef(0., 0., -5.)  # zoom out a bit
         # Rotate the entire field a bit to simulate a camera angle.
         glRotatef(22, 0, 0, 0)
+        glClearColor(1, 0, 1, 1)
 
         self.exit_flag = False
         while not self.exit_flag:
@@ -74,6 +78,8 @@ class GameLoop:
 
             # clear the screen
             glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
+
+            # draw the drawables
             for d in self.drawables:
                 if (hasattr(d, 'GLDraw')):
                     d.GLDraw()
@@ -81,8 +87,9 @@ class GameLoop:
                     raise AttributeError('GameLoop: drawable has no .GLDraw() \
                         and cannot be drawn.')
 
-        pygame.display.flip()
-        clock.tick(clock_rate)
+            pygame.display.flip()
+            clock.tick(clock_rate)
+        # end game loop
 
     def __enter__(self):  # A place to load game assets. Override as needed.
         "Actions performed when the class is created using a 'with' statement."
