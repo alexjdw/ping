@@ -7,11 +7,18 @@ from ..pallette import C_WHITE
 class Point3D(ReprMixin):
     "A drawable vertex with a color."
 
-    def __init__(self, x, y, z, color=C_WHITE):
+    def __init__(self, x, y, z, color=None):
         self.vertex = (x, y, z)
         self.color = color
 
     def GLDraw(self):
+        glBegin(GL_POINTS)
+        if self.color is not None:
+            glColor3fv(self.color)
+        glVertex3fv(self.vertex)
+        glEnd()
+
+    def GLDrawC(self):
         glBegin(GL_POINTS)
         glColor3fv(self.color)
         glVertex3fv(self.vertex)

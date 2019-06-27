@@ -5,7 +5,7 @@
 # from ..utils import vector
 
 
-class Sphere3D(Shape3D, Point3D):
+class Sphere3D():
     pass
 #     "A sphere represented by a point and a radius."
 #     def __init__(self, parent, radius, posx, posy, posz, color):

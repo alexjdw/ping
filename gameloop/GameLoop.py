@@ -63,7 +63,7 @@ class GameLoop:
         # Zoom out a bit.
         glTranslatef(0., 0., -5.)  # zoom out a bit
         # Rotate the entire field a bit to simulate a camera angle.
-        glRotatef(22, 0, 0, 0)
+        glRotatef(22, 5, 5, 5)
         glClearColor(1, 0, 1, 1)
 
         self.exit_flag = False
