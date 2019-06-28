@@ -4,6 +4,7 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 from random import random
 
+
 class Shape2D(ReprMixin):
     "A 2d polygon made from a collection of points."
     def __init__(self, points_list, color):
@@ -24,3 +25,7 @@ class Shape2D(ReprMixin):
         glBegin(GL_LINES)
         glVertex3fv(self.points)
         glEnd()
+
+    @property
+    def VBO_array(self):
+        return np.array(self.points)

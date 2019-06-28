@@ -21,13 +21,29 @@ clock = pygame.time.Clock()
 # drawables = [ball, net, player, table]
 
 
-drawables = {cube(1, Point3D(0.2, 0.2, .2))}
-glRotatef(45.,30.,30.,0.)
+drawables = {cube(1, Point3D(-.5, -.5, .2))}
 glEnable(GL_POLYGON_SMOOTH)
-glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST)
+# glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST)
 glEnable(GL_BLEND)
-glDisable(GL_DEPTH_TEST)
+glEnable(GL_DEPTH_TEST)
+
 with GameLoop(drawables) as loop:
+    def handle_mouse(loop, event):
+        if not pygame.mouse.get_pressed()[0]:
+            return
+
+        loop.state['pos'].append(np.array(event.pos))
+
+        if len(loop.state['pos']) > 25:
+            pos = loop.state['pos'].popleft()
+        else:
+            pos = loop.state['pos'][0]
+        pos = event.pos - pos
+        glRotatef(5, pos[0], pos[1], 0)
+
+    from collections import deque
+    loop.state['pos'] = deque()
+    loop.define_handler(pygame.MOUSEMOTION, handle_mouse)
     loop.begin(gameDisplay, clock, 60)
 
 pygame.quit()

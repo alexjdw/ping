@@ -1,10 +1,11 @@
 import pygame
 from OpenGL.GL import *
 from OpenGL.GLU import *
+from contextlib import contextmanager
 
 
 class GameLoop:
-    def __init__(self, drawables):
+    def __init__(self, drawables, translatefv=(0., 0., -.5), rotatefv=(0., 0., 0., 0.)):
         self.exit_flag = False
         if not isinstance(drawables, set):
             raise TypeError("drawables should be a Set. Sets provide \
@@ -14,6 +15,8 @@ class GameLoop:
         self._event_handlers = {}
         self.state = {}  # a dictionary for storing in-game variables.
         self.exit_flag = False  # a flag to exit the game.
+        glTranslatefv(translatefv)  # initial translation
+        glRotatefv(rotatefv)
 
     def define_handler(self, pygame_event, handler):
         '''
@@ -63,8 +66,15 @@ class GameLoop:
         # Zoom out a bit.
         glTranslatef(0., 0., -5.)  # zoom out a bit
         # Rotate the entire field a bit to simulate a camera angle.
-        glRotatef(22, 5, 5, 5)
-        glClearColor(1, 0, 1, 1)
+        glRotatef(45., 30., 30.,0.)
+        # Background color
+        glClearColor(0, 0, 0, 0)
+
+        @contextmanager
+        def DRAWING(mode):
+            glBegin(mode)
+            yield
+            glEnd()
 
         self.exit_flag = False
         while not self.exit_flag:
@@ -72,7 +82,6 @@ class GameLoop:
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     quit()
-
                 if event.type in self._event_handlers:
                     self._event_handlers[event.type](self, event)
 
@@ -80,12 +89,13 @@ class GameLoop:
             glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
 
             # draw the drawables
-            for d in self.drawables:
-                if (hasattr(d, 'GLDraw')):
-                    d.GLDraw()
-                else:
-                    raise AttributeError('GameLoop: drawable has no .GLDraw() \
-                        and cannot be drawn.')
+            with DRAWING(GL_TRIANGLES) as _:
+                for d in self.drawables:
+                    if (hasattr(d, 'GLDraw')):
+                        d.GLDraw()
+                    else:
+                        raise AttributeError('GameLoop: drawable has no .GLDraw() \
+                            and cannot be drawn.')
 
             pygame.display.flip()
             clock.tick(clock_rate)
@@ -93,7 +103,6 @@ class GameLoop:
 
     def __enter__(self):  # A place to load game assets. Override as needed.
         "Actions performed when the class is created using a 'with' statement."
-        print("Game loop created.")
         return self
 
     def __exit__(self, type, value, traceback):  # Destroy game assets. Override as needed.
