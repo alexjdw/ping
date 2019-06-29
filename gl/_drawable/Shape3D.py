@@ -11,24 +11,26 @@ from .Rect2D import Rect2D
 
 class Shape3D(ReprMixin):
     "A 3d shape made from a collection of 2d faces."
-    def __init__(self, shapes_list, color=(.5,.5,.5,1), shader=None):
+    def __init__(self, shapes_list, color=(.5,.5,.5,1.0), shader=None):
         self.shapes = shapes_list
         self.color = color
+        if (len(self.color) != 4):
+            self.color = (self.color[0], self.color[1], self.color[2], 1.)
         self._VBO_is_compiled = False
         if shader is None:
             # No shader provided. Fill with color.
             # Create the C code for the vertex shader.
-            VERTEX_SHADER = shaders.compileShader("""#version 120
+            vshader = shaders.compileShader("""#version 120
             void main() {
                 gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
             }""", GL_VERTEX_SHADER)
             # Create the C code for the fragment shader.
-            FRAGMENT_SHADER = shaders.compileShader("""#version 120
+            fshader = shaders.compileShader("""#version 120
             void main() {
-                gl_FragColor = vec3""" + self.color + """;
+                gl_FragColor = vec4""" + self.color.__str__() + """;
             }""", GL_FRAGMENT_SHADER)
             # Have openGL compile both shaders and save the result.
-            self.shader = shaders.compileProgram(VERTEX_SHADER,FRAGMENT_SHADER)
+            self.shader = shaders.compileProgram(vshader, fshader)
         else:
             # An already-compiled shader was provided.
             self.shader = shader

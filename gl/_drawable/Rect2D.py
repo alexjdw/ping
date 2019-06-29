@@ -28,4 +28,5 @@ class Rect2D(ReprMixin):
 
     @property
     def VBO_array(self):
-        return np.array([p.vertex for p in self.points])
+        '''Returns an array of vertex arrays.'''
+        return np.array([np.array(p.vertex) for p in self.points])

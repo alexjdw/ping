@@ -5,7 +5,18 @@ from contextlib import contextmanager
 
 
 class GameLoop:
-    def __init__(self, drawables, translatefv=(0., 0., -.5), rotatefv=(0., 0., 0., 0.)):
+    '''
+    An example gameloop using PyGame and OpenGL. This class is meant to be inherited.
+    
+    Usage: Create your 3D drawables. Pass them in to an instance of the class, then add PyGame
+    event handlers using define_handler to accomodate user input.
+    
+    :param drawables: A list of objects that implement a valid .GLDraw method.
+    :param translatev: Tuple. Moves the camera by (x, y, z).
+    :param rotatev: Tuple. Roates the camera.
+    '''
+
+    def __init__(self, drawables, translatev=(0., 0., -.5), rotatev=(0., 0., 0., 0.)):
         self.exit_flag = False
         if not isinstance(drawables, set):
             raise TypeError("drawables should be a Set. Sets provide \
@@ -15,12 +26,13 @@ class GameLoop:
         self._event_handlers = {}
         self.state = {}  # a dictionary for storing in-game variables.
         self.exit_flag = False  # a flag to exit the game.
-        glTranslatefv(translatefv)  # initial translation
-        glRotatefv(rotatefv)
+        glTranslate(translatefv)  # initial translation
+        glRotate(rotatefv)
 
     def define_handler(self, pygame_event, handler):
         '''
-        A semantic way to add event handler functions to the game loop.
+        A semantic way to add PyGame-compatible event handler functions
+        to the game loop.
 
         :param pygame_event: The event object from PyGame.
         :param handler: A function that handles the event with the format
