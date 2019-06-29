@@ -26,8 +26,8 @@ class GameLoop:
         self._event_handlers = {}
         self.state = {}  # a dictionary for storing in-game variables.
         self.exit_flag = False  # a flag to exit the game.
-        glTranslate(translatefv)  # initial translation
-        glRotate(rotatefv)
+        glTranslate(*translatev)  # initial translation
+        glRotate(*rotatev)
 
     def define_handler(self, pygame_event, handler):
         '''

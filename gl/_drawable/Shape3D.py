@@ -11,10 +11,11 @@ from .Rect2D import Rect2D
 
 class Shape3D(ReprMixin):
     "A 3d shape made from a collection of 2d faces."
-    def __init__(self, shapes_list, color=(.5,.5,.5,1.0), shader=None):
+    def __init__(self, shapes_list, color=(.5, .5, .5, 1.0), shader=None):
         self.shapes = shapes_list
         self.color = color
         if (len(self.color) != 4):
+            # Ensure color includes alpha
             self.color = (self.color[0], self.color[1], self.color[2], 1.)
         self._VBO_is_compiled = False
         if shader is None:
@@ -50,13 +51,13 @@ class Shape3D(ReprMixin):
         for s in self.shapes:
             vbo.extend(s.VBO_array)
 
-        return np.array(vbo)
+        return np.array(vbo, 'f')
 
     def to_renderable(self):
         "Returns (VBO array (an array of vertexes), shader, GL_MODE) for drawing."
         if not self._VBO_is_compiled:
             self._VBO = self.VBO_array
-            self._VBO_len = len(self.VBO_array)  # do this in advance for a slight speed gain.
+            self._VBO_is_compiled = True
 
         return (self._VBO, self.shader, GL_TRIANGLES)
 

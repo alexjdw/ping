@@ -7,7 +7,7 @@ from contextlib import contextmanager
 
 
 class VBOGameLoop(GameLoop):
-    def __init__(self, drawables, translatev=(0., 0., -3), rotatev=(0., 0., 0., 0.)):
+    def __init__(self, drawables, translatev=(0., 0., -1), rotatev=(0., 0., 0., 0.)):
         self.exit_flag = False
         if not isinstance(drawables, set):
             raise TypeError("drawables should be a Set. Sets provide \
@@ -34,7 +34,7 @@ class VBOGameLoop(GameLoop):
         gluPerspective(0, (display.get_width() / display.get_height()),
                        .05,
                        50.)
-
+        glClearColor(.2,.2,.2,1) 
         # Main Loop #####################################
         self.exit_flag = False
         while not self.exit_flag:
@@ -52,21 +52,22 @@ class VBOGameLoop(GameLoop):
             for d in self.drawables:
                 verticies, shader, mode = d.to_renderable()
                 vbo = VBO(verticies)
-                if len(verticies):
+                try:
+                    # Add the VBO to gfxcard memory
+                    shaders.glUseProgram(shader)
+                    assert not glGetError()
                     try:
-                        # Add the VBO to gfxcard memory
                         vbo.bind()
-                        try:
-                            glEnableClientState(GL_VERTEX_ARRAY)
-                            glVertexPointerf(vbo)
-                            glDrawArrays(mode, 0, len(verticies) * len(verticies[0]))
-                        finally:
-                            # Release the VBO memory in the graphics card
-                            vbo.unbind()
-                            glDisableClientState(GL_VERTEX_ARRAY)
+                        glEnableClientState(GL_VERTEX_ARRAY)
+                        glVertexPointerf(vbo)
+                        glDrawArrays(mode, 0, len(verticies))
                     finally:
-                        # Remove the shader
-                        shaders.glUseProgram(0)
+                        # Release the VBO memory in the graphics card
+                        vbo.unbind()
+                        glDisableClientState(GL_VERTEX_ARRAY)
+                finally:
+                    # Remove the shader
+                    shaders.glUseProgram(0)
 
 
             pygame.display.flip()

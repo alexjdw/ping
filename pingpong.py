@@ -28,7 +28,7 @@ glEnable(GL_POLYGON_SMOOTH)
 glEnable(GL_BLEND)
 glEnable(GL_DEPTH_TEST)
 
-with GameLoop(drawables) as loop:
+with VBOGameLoop(drawables) as loop:
     def handle_mouse(loop, event):
         if not pygame.mouse.get_pressed()[0]:
             return
