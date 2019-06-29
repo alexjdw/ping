@@ -1,5 +1,7 @@
 import pygame, numpy as np
-from OpenGL.GL import *
+from OpenGL.GL import glTranslate, glRotate, gluPerspective, glLoadIdentity,\
+    glClearColor, glClear, glDisableClientState, glEnableClientState,\
+    glVertexPointerf, glDrawArrays, glGetError, shaders
 from OpenGL.GLU import *
 from OpenGL.arrays.vbo import VBO
 from .GameLoop import GameLoop
@@ -24,12 +26,11 @@ class VBOGameLoop(GameLoop):
         "Begins the game loop on the given display."
 
         # OpenGL setup. ################################
-        # Set perspective, aspect ratio, clipping bounds
-        
+        # Set perspective, aspect ratio, clipping bound.
         gluPerspective(0, (display.get_width() / display.get_height()),
                        .1,
                        1.)
-        glLoadIdentity();
+        glLoadIdentity()
 
         glClearColor(.2,.2,.2,1) 
         # Main Loop #####################################

@@ -12,33 +12,22 @@ class Point3D(ReprMixin):
         self.color = color
 
     def GLDraw(self):
+        "Old-style drawing compatability. Call after glBegin()."
         glBegin(GL_POINTS)
         if self.color is not None:
             glColor3fv(self.color)
         glVertex3fv(self.vertex)
         glEnd()
 
-    def GLDrawC(self):
-        glBegin(GL_POINTS)
-        glColor3fv(self.color)
-        glVertex3fv(self.vertex)
-        glEnd()
+    def compile_VBO(self, with_color=True, override_color=None):
+        if with_color:
+            if override_color is not None:
+                color = np.array(self.vertex, 'f').concatenate(override_color)
+            elif self.color is not None:
+                color = np.array(self.vertex, 'f').concatenate(color)
+            return np.array(self.vertex, 'f').concatenate(color)
+        return np.array(self.vertex, 'f')
 
-    # @property
-    # def pos(self):
-    #     'The relative position of an point when applied to a 2d screen.'
-    #     source = np.array([self.parent.get_width() / 2,
-    #                        self.parent.get_height() / 2,
-    #                        -50])
-    #     shrink = vector.dist(self.pos3d, source)
-
-    #     adjust = (source[:2] - self.pos3d[:2]) / shrink
-    #     pos = self.pos3d[:2] - adjust
-
-    #     return pos.astype(int)
-
-    # def move(self):
-    #     self.pos3d = self.pos3d + self.vector
 
     def draw(self, target):
         'Draw the point as a single pixel on a 2d target surface.'

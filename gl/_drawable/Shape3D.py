@@ -39,13 +39,18 @@ class Shape3D(ReprMixin):
 
     def compile_VBO(self, include_color=True,
                     force_color=False, color=None):
-        "Compiles the verticies of all faces into a VBO-style nested array."
-        vbo = []
-        if color is None:
+        '''Compiles the verticies of all faces into a VBO-style nested array.
+
+        :param include_color: includes a color value in the result.
+        :param force_color: forces the parent color to apply to the child objects.
+          - :include_color: must be set to True, otherwise you won't get a color back.
+        :param color: Override the shape's .color value for this call.'''
+        vbo = np.array([], 'f')
+        if color is None and include_color:
             color = self.color
         for s in self.shapes:
             s.compile_VBO(include_color=False, override_color=False, color=color)
-            vbo.extend(s._VBO)
+            vbo.concatenate(s._VBO)
 
         self._VBO = np.array(vbo, 'f')
         self._VBO_is_compiled = True
@@ -54,30 +59,33 @@ class Shape3D(ReprMixin):
         return self._color
 
     def set_color(self, color):
+        # Although color can be excluded from the generated VBO,
+        # its presumed that if you're changing the color,
+        # you plan to use it.
         self._color = color
-        self._VBO_is_compiled
+        self._VBO_is_compiled = False
 
     color = property(get_color, set_color)
-    offset = property(get_offset, set_offset)
 
-    def custom_renderable(self, with_color=True):
-        if not self._VBO_is_compiled:
+    def custom_render(self, with_color=True, override_color=None):
+        '''Render with a few more options. Note: always recompiles.'''
+        if override_color is None:
             self._compile_VBO(with_color)
+        else:
+            self._compile_VBO(with_color, override_color)
+
         return (self._VBO, self.shader, GL_TRIANGLES)
 
     def render(self):
         '''
-        Prepares the internal data to render the function.
+        Prepares and returns the VBO-formatted data.
 
         Returns ([[VBO-ready array of vertexes]], shader, GL_MODE) for drawing.
         '''
-        color, offset = False, False
-        if self.color is not None:
-            color = True
-        if self.offset is not None:
-            offset = True
+        if not self._VBO_is_compiled:
+            self._compile_VBO(with_color)
 
-        return self.custom_renderable(offset, color)
+        return (self._VBO, self.shader, GL_TRIANGLES)
 
 
 def box(height, width, depth, first_point, color=None):
@@ -106,6 +114,7 @@ def box(height, width, depth, first_point, color=None):
         Rect2D([points[2], points[3], points[6], points[7]], (.5, .5, .5)),
         Rect2D([points[5], points[4], points[7], points[6]], (.1, .5, .9)),
     ]
+
     return Shape3D(shapes, color)
 
 
