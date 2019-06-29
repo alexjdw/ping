@@ -21,19 +21,17 @@ class VBOGameLoop(GameLoop):
         glRotate(*rotatev)
 
 
-    def Render(self, mode):
-        """Render the geometry for the scene."""
-        # Start applying the shader.
-
-
     def begin(self, display, clock, clock_rate):
         "Begins the game loop on the given display."
 
         # OpenGL setup. ################################
         # Set perspective, aspect ratio, clipping bounds
+        
         gluPerspective(0, (display.get_width() / display.get_height()),
-                       .05,
-                       50.)
+                       .1,
+                       1.)
+        glLoadIdentity();
+
         glClearColor(.2,.2,.2,1) 
         # Main Loop #####################################
         self.exit_flag = False

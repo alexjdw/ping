@@ -28,7 +28,7 @@ class Shape3D(ReprMixin):
             # Create the C code for the fragment shader.
             fshader = shaders.compileShader("""#version 120
             void main() {
-                gl_FragColor = vec4""" + self.color.__str__() + """;
+                gl_FragColor = vec4""" + str(self.color) + """;
             }""", GL_FRAGMENT_SHADER)
             # Have openGL compile both shaders and save the result.
             self.shader = shaders.compileProgram(vshader, fshader)
@@ -58,7 +58,6 @@ class Shape3D(ReprMixin):
         if not self._VBO_is_compiled:
             self._VBO = self.VBO_array
             self._VBO_is_compiled = True
-
         return (self._VBO, self.shader, GL_TRIANGLES)
 
 
@@ -77,7 +76,6 @@ def box(height, width, depth, first_point, color=None):
               np.array(p1 + d + h),
               np.array(p1 + d + h + w)]
 
-    print(points)
     for index, point in enumerate(points):
         points[index] = Point3D(point[0], point[1], point[2], color)
 
@@ -87,14 +85,15 @@ def box(height, width, depth, first_point, color=None):
         Rect2D([points[4], points[0], points[6], points[2]], (.3, .4, .5)),
         Rect2D([points[4], points[5], points[0], points[1]], (.1, .1, .9)),
         Rect2D([points[2], points[3], points[6], points[7]], (.5, .5, .5)),
+        Rect2D([points[5], points[4], points[7], points[6]], (.1, .5, .9)),
     ]
     return Shape3D(shapes, color)
 
 
-def cube(length, first_point, color=(0,0,0)):
+def cube(length, first_point, color=(0, 0, 0)):
     'Constructs a cube.'
     return box(length, length, length, first_point, color)
 
 
-def pyramid(base_len, base_wid, height, first_point, color=(0,0,0)):
+def pyramid(base_len, base_wid, height, first_point, color=(0, 0, 0)):
     pass

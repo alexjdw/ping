@@ -27,6 +27,7 @@ glEnable(GL_POLYGON_SMOOTH)
 # glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST)
 glEnable(GL_BLEND)
 glEnable(GL_DEPTH_TEST)
+glMatrixMode(GL_PROJECTION)
 
 with VBOGameLoop(drawables) as loop:
     def handle_mouse(loop, event):
