@@ -3,9 +3,10 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 from ..utils import ReprMixin
 from random import random
+from .Shape2D import Shape2D
 
 
-class Rect2D(ReprMixin):
+class Rect2D(Shape2D, ReprMixin):
     "A 2d rectangle made from a collection of four points."
     def __init__(self, points_list, color=None):
         if len(points_list) != 4:
@@ -15,16 +16,6 @@ class Rect2D(ReprMixin):
                        points_list[0], points_list[3], points_list[2]]
         self.lines = points_list
         self.color = color
-
-    def GLDraw(self):
-        if self.color is not None:
-            glColor3fv(self.color)
-        for p in self.points:
-            glVertex3fv(p.vertex)
-            # print(p.vertex)
-
-    def GLDraw_outline(self):
-        glVertex3fv(self.lines)
 
     @property
     def VBO_array(self):

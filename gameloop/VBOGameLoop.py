@@ -5,7 +5,6 @@ from OpenGL.arrays.vbo import VBO
 from .GameLoop import GameLoop
 from contextlib import contextmanager
 
-
 class VBOGameLoop(GameLoop):
     def __init__(self, drawables, translatev=(0., 0., -1), rotatev=(0., 0., 0., 0.)):
         self.exit_flag = False

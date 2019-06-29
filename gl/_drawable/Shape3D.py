@@ -4,32 +4,23 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.arrays import vbo
 from OpenGL.GL import shaders
-
 from .Point3D import Point3D
 from .Rect2D import Rect2D
-
+import ..shader_presets
 
 class Shape3D(ReprMixin):
     "A 3d shape made from a collection of 2d faces."
-    def __init__(self, shapes_list, color=(.5, .5, .5, 1.0), shader=None):
+    def __init__(self, shapes_list, color=None, offset=None, shader=None):
         self.shapes = shapes_list
         self.color = color
-        if (len(self.color) != 4):
-            # Ensure color includes alpha
-            self.color = (self.color[0], self.color[1], self.color[2], 1.)
+        self.offset = offset
         self._VBO_is_compiled = False
         if shader is None:
             # No shader provided. Fill with color.
             # Create the C code for the vertex shader.
-            vshader = shaders.compileShader("""#version 120
-            void main() {
-                gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
-            }""", GL_VERTEX_SHADER)
+            vshader = shader_presets.compile('vertex_default', GL_VERTEX_SHADER)
             # Create the C code for the fragment shader.
-            fshader = shaders.compileShader("""#version 120
-            void main() {
-                gl_FragColor = vec4""" + str(self.color) + """;
-            }""", GL_FRAGMENT_SHADER)
+            fshader = shader_presets.compile('fragment_default', GL_FRAGMENT_SHADER)
             # Have openGL compile both shaders and save the result.
             self.shader = shaders.compileProgram(vshader, fshader)
         else:
@@ -37,28 +28,56 @@ class Shape3D(ReprMixin):
             self.shader = shader
 
     def GLDraw(self):
+        "Draws the shape. Old-style drawing mechanism. Deprecated."
         for s in self.shapes:
             s.GLDraw()
 
     def GLDraw_outline(self):
+        "Old-style drawing mechanism. Draws the shape."
         for s in self.shapes:
             s.GLDraw_outline()
 
-    @property
-    def VBO_array(self):
-        "Returns a numpy array of points."
+    def compile_VBO(self, include_color=True,
+                    force_color=False, color=None):
+        "Compiles the verticies of all faces into a VBO-style nested array."
         vbo = []
+        if color is None:
+            color = self.color
         for s in self.shapes:
-            vbo.extend(s.VBO_array)
+            s.compile_VBO(include_color=False, override_color=False, color=color)
+            vbo.extend(s._VBO)
 
-        return np.array(vbo, 'f')
+        self._VBO = np.array(vbo, 'f')
+        self._VBO_is_compiled = True
 
-    def to_renderable(self):
-        "Returns (VBO array (an array of vertexes), shader, GL_MODE) for drawing."
+    def get_color(self):
+        return self._color
+
+    def set_color(self, color):
+        self._color = color
+        self._VBO_is_compiled
+
+    color = property(get_color, set_color)
+    offset = property(get_offset, set_offset)
+
+    def custom_renderable(self, with_color=True):
         if not self._VBO_is_compiled:
-            self._VBO = self.VBO_array
-            self._VBO_is_compiled = True
+            self._compile_VBO(with_color)
         return (self._VBO, self.shader, GL_TRIANGLES)
+
+    def render(self):
+        '''
+        Prepares the internal data to render the function.
+
+        Returns ([[VBO-ready array of vertexes]], shader, GL_MODE) for drawing.
+        '''
+        color, offset = False, False
+        if self.color is not None:
+            color = True
+        if self.offset is not None:
+            offset = True
+
+        return self.custom_renderable(offset, color)
 
 
 def box(height, width, depth, first_point, color=None):
