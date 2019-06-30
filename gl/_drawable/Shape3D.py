@@ -1,12 +1,13 @@
 import pygame, numpy as np
-from ..utils import ReprMixin
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.arrays import vbo
 from OpenGL.GL import shaders
 from .Point3D import Point3D
 from .Rect2D import Rect2D
-import ..shader_presets
+from .. import shader_presets
+from ..utils import ReprMixin
+
 
 class Shape3D(ReprMixin):
     "A 3d shape made from a collection of 2d faces."
@@ -37,7 +38,7 @@ class Shape3D(ReprMixin):
         for s in self.shapes:
             s.GLDraw_outline()
 
-    def compile_VBO(self, include_color=True,
+    def compile_VBO(self, include_color=False,
                     force_color=False, color=None):
         '''Compiles the verticies of all faces into a VBO-style nested array.
 
@@ -45,14 +46,14 @@ class Shape3D(ReprMixin):
         :param force_color: forces the parent color to apply to the child objects.
           - :include_color: must be set to True, otherwise you won't get a color back.
         :param color: Override the shape's .color value for this call.'''
-        vbo = np.array([], 'f')
+        vbos = []
         if color is None and include_color:
             color = self.color
         for s in self.shapes:
-            s.compile_VBO(include_color=False, override_color=False, color=color)
-            vbo.concatenate(s._VBO)
+            s.compile_VBO(include_color, force_color, color=color)
+            vbos.append(s._VBO)
 
-        self._VBO = np.array(vbo, 'f')
+        self._VBO = np.concatenate(vbos)
         self._VBO_is_compiled = True
 
     def get_color(self):
@@ -83,11 +84,12 @@ class Shape3D(ReprMixin):
         Returns ([[VBO-ready array of vertexes]], shader, GL_MODE) for drawing.
         '''
         if not self._VBO_is_compiled:
-            self._compile_VBO(with_color)
+            self.compile_VBO()
 
         return (self._VBO, self.shader, GL_TRIANGLES)
 
 
+# Alternate constructors
 def box(height, width, depth, first_point, color=None):
     'Constructs a rectangular box.'
     h = np.array([height, 0, 0])
@@ -116,7 +118,6 @@ def box(height, width, depth, first_point, color=None):
     ]
 
     return Shape3D(shapes, color)
-
 
 def cube(length, first_point, color=(0, 0, 0)):
     'Constructs a cube.'

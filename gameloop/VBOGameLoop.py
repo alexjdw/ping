@@ -1,7 +1,8 @@
 import pygame, numpy as np
-from OpenGL.GL import glTranslate, glRotate, gluPerspective, glLoadIdentity,\
+from OpenGL.GL import glTranslate, glRotate, glLoadIdentity,\
     glClearColor, glClear, glDisableClientState, glEnableClientState,\
-    glVertexPointerf, glDrawArrays, glGetError, shaders
+    glVertexPointerf, glDrawArrays, glGetError, shaders,\
+    GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT, GL_VERTEX_ARRAY
 from OpenGL.GLU import *
 from OpenGL.arrays.vbo import VBO
 from .GameLoop import GameLoop
@@ -48,7 +49,8 @@ class VBOGameLoop(GameLoop):
 
             # Render all the things
             for d in self.drawables:
-                verticies, shader, mode = d.to_renderable()
+                verticies, shader, mode = d.render()
+                print(verticies)
                 vbo = VBO(verticies)
                 try:
                     # Add the VBO to gfxcard memory

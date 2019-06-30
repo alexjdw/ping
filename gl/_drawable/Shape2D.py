@@ -45,11 +45,11 @@ class Shape2D(ReprMixin):
         # Shapes do not include a full render property
         # and offsets as they are meant to be faces of
         # a 3D object.
-        vbo = np.array([], 'f')
+        vbo = []
         if color is None and include_color:
             color = self.color
         for p in self.points:
-            p.compile_VBO(self, include_color, force_color, color)
-            vbo.concatenate(p._VBO)
+            p.compile_VBO(include_color, force_color, color)
+            vbo.append(p._VBO)
 
         self._VBO = np.array(vbo, 'f')

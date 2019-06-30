@@ -19,14 +19,16 @@ class Point3D(ReprMixin):
         glVertex3fv(self.vertex)
         glEnd()
 
-    def compile_VBO(self, with_color=True, override_color=None):
-        if with_color:
-            if override_color is not None:
-                color = np.array(self.vertex, 'f').concatenate(override_color)
-            elif self.color is not None:
-                color = np.array(self.vertex, 'f').concatenate(color)
-            return np.array(self.vertex, 'f').concatenate(color)
-        return np.array(self.vertex, 'f')
+    def compile_VBO(self, include_color=True,
+                    force_color=False, color=None):
+        if include_color:
+            if not force_color:
+                if self.color is not None and color is None:
+                    color = self.color
+                else:
+                    raise ValueError(f"Tried to render with color, but color wasn't provided. not provided. {repr(self)}")
+            self._VBO = np.concatenate((np.array(self.vertex, 'f'), color))
+        self._VBO = np.array(self.vertex, 'f')
 
 
     def draw(self, target):
