@@ -46,11 +46,11 @@ class Shape2D(ReprMixin):
             for point in self.points:
                 if point.color is None:
                     point.color = color
-        
+
         self._VBO_is_compiled = False
 
     def GLDraw(self):
-        "Old-style drawing. Preserved for compatibility. glBegin() before calling."
+        "Old-style drawing for compatibility. glBegin() before calling."
         if self.color is not None:
             glColor3fv(self.color)
         for p in self.points:
@@ -76,3 +76,4 @@ class Shape2D(ReprMixin):
                 vbo.append(p._VBO)
 
             self._VBO = np.array(vbo, 'f')
+            self._VBO_is_compiled = True

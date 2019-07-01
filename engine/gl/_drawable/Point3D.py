@@ -32,8 +32,7 @@ class Point3D(ReprMixin):
                 self._VBO.extend(self.normal)
             if self.color:
                 self._VBO.extend(self.color)
-            self._VBO = np.array(self._VBO, 'f')  # force floats
-
-    def draw(self, target):
-        'Draw the point as a single pixel on a 2d target surface.'
-        target.fill(self.color, (self.pos, (1,1)))
+            self._VBO_is_compiled = True
+            # Note; we are not compiling to numpy here because
+            # it complicates the code a bit; numpy.append doesn't
+            # work in the same way that [].append works.

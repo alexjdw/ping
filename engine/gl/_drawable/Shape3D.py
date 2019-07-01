@@ -12,8 +12,8 @@ from ..utils import ReprMixin
 class Shape3D(ReprMixin):
     "A 3d shape made from a collection of 2d faces."
     def __init__(self, shapes_list, 
-            color=None,
-            offset=None):
+                 color=None,
+                 offset=None):
         self.shapes = shapes_list
         self.color = color
         self.offset = offset
@@ -31,10 +31,8 @@ class Shape3D(ReprMixin):
 
     def compile_VBO(self, include_color=False,
                     force_color=False, color=None):
-        '''Compiles the verticies of all faces into a VBO.'''
+        "Compiles the verticies of all faces into a VBO and saves the ref."
         vbos = []
-        if color is None and include_color:
-            color = self.color
         for s in self.shapes:
             s.compile_VBO(include_color, force_color, color=color)
             vbos.append(s._VBO)
