@@ -1,6 +1,7 @@
 import pygame
 import numpy as np
 from OpenGL.GL import *
+from OpenGL.GL import glRotatef
 from OpenGL.GLU import *
 # from pingpong.game_objects.testobjs import player, table, net, ball
 from gl.drawable import cube, Point3D
