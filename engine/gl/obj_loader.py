@@ -109,68 +109,58 @@ class OBJ:
         glEndList()
 
 
-class OBJ2:
-    def __init__(self, filename, swapxyz=False, suppress_not_implemented=True):
-        """Loads a Wavefront OBJ file as a VBO. """
-        self.points = []
-        self.normals = []
-        self.texcoords = []
-        self.faces = []
-        self.swapxyz = swapxyz
-        self.curmat = None  # the currently selected material
+def OBJ_to_shape(self, filename, swapyz=False, suppress_not_implemented=True):
+    '''
+    Loads a wavefront file and returns a Shape3D.
 
-        # Load verticies, faces, MTLs.
-        options = {
-            'v': self.addVertex,
-            'vn': self.addNormal,
-            'vt': self.addTexture,
-            'usemtl': self.setMaterial,
-            'usemat': self.setMaterial,
-            'f': self.addPolygon}
-        with open(filename, "r") as f:
-            for line in f:
-                if line.startswith('#'):  # line is a comment
-                    continue
-                values = line.split()
-                if not values:  # line is blank
-                    continue
+    :param filename: The absolute path of the file to load.
+    :param swapxyz: Swaps the y and z axes.
+    :param suppress_not_implemented: If a .obj file format feature is not
+      implemented, throw a NotImplementedError when this is True. We haven't
+      implemented the full .obj scope, so generally you should set this to
+      True. False is useful to see why parts of your model aren't loading or to
+      potentially detect invalid .obj files.
+    '''
 
-                # call appropriate function
-                try:
-                    options[values[0]](values)
-                except KeyError:
-                    if not suppress_not_implemented:
-                        raise NotImplementedError(
-                            f"Unable to parse .obj files with {values[0]} elements."
-                            )
+    # TODO: Add additonal support for .obj files.
+    # TODO: Add material support to the Shape2D class.
 
-        def render(self):
-            "Returns a VBO-style numpy array."
-            return (self._VBO, self.shader, GL_POLYGON)
+    state = {
+        points: [],
+        normals: [],
+        texcoords: [],
+        shapes: [],
+        curmat: None,  # the currently selected material
+        swapxyz: swapxyz
+    }
 
-    def addVertex(self, values):
+    ####################################
+    # Handlers for each possible line. #
+    ####################################
+
+    def addVertex(state, values):
         v = map(float, values[1:4])
-        if self.swapyz:
+        if swapyz:
             v = (v[0], v[2], v[1])
-        self.points.append(Point3D(v))
+        state['points'].append(Point3D(*v))
 
-    def addNormal(self, values):
+    def addNormal(state, values):
         v = map(float, values[1:4])
-        if self.swapyz:
+        if state.swapyz:
             v = v[0], v[2], v[1]
-        self.normals.append(v)
+        state['normals'].append(v)
 
-    def addTexture(self, values):
-        self.texcoords.append(map(float, values[1:3]))
+    def addTexture(state, values):
+        state['texcoords'].append(map(float, values[1:3]))
 
     def setMaterial(self, values):
-        self.curmat = values[1]
+        state['curmat'] = values[1]
 
     def setMTL(self, values):
-        self.mtl = MTL(values[1])
+        state['mtl'] = MTL(values[1])
 
     def addPolygon(self, values):
-        points = []
+        pcoords = []
         texcoords = []
         tex_arg = None
         norms = []
@@ -180,17 +170,54 @@ class OBJ2:
             # which refer to the index of their corresponding point object.
             items = v.split('/')
             items = [int(i) for i in items]
-            points.append(self.points[items[0] - 1])
+            pcoords.append(state['points'][items[0] - 1])
             if len(items) >= 2 and len(items[1]) > 0:
-                texcoords.append(self.texcoords(items[1]))
+                texcoords.append(state['texcoords'](items[1]))
                 tex_arg = texcoords
             if len(items) >= 3 and len(items[2]) > 0:
-                norms.append(self.normals(items[2]))
+                norms.append(state['normals'](items[2]))
                 norms_arg = norms
-        self.shapes.append(
+        state['shapes'].append(
             Shape2D(points,
                     textures=tex_arg,
                     normals=norms_arg,
                     mode=GL_POLYGON
-                )
+                    )
             )
+
+    calls = {  # a dictionary of the above handlers
+        'v': addVertex,
+        'vn': addNormal,
+        'vt': addTexture,
+        'usemtl': setMaterial,
+        'usemat': setMaterial,
+        'f': addPolygon}
+
+    with open(filename, "r") as f:
+        for line in f:
+            if line.startswith('#'):  # line is a comment
+                continue
+            values = line.split()
+            if not values:  # line is blank
+                continue
+
+            # call appropriate function
+            try:
+                calls[values[0]](state, values)
+            except KeyError:
+                if not suppress_not_implemented:
+                    raise NotImplementedError(
+                        f"Unable to parse .obj files with {values[0]} elements.\
+                            To suppress this warning, pass \
+                            suppress_not_implemented=True."
+                        )
+
+    normsarg, texarg = False, False
+    if len(state['normals']):
+        normsarg = True
+    if len(state['texcoords']):
+        texarg = True
+
+    return Shape3D(state['shapes'],
+           enable_texture=texarg,
+           enable_normals=normsarg)

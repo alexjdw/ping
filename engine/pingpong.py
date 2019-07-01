@@ -4,7 +4,6 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 # from pingpong.game_objects.testobjs import player, table, net, ball
 from gl.drawable import cube, Point3D
-from gl.pallette import C_WHITE
 from gl.constants import WIDTH, HEIGHT
 from gameloop.VBOGameLoop import VBOGameLoop
 from gameloop.GameLoop import GameLoop
