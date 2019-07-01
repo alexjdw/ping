@@ -64,8 +64,6 @@ class Shape3D(ReprMixin):
         self._VBO = np.concatenate(vbos)
         self._VBO_is_compiled = True
 
-    color = property(get_color, set_color)
-
     def custom_render(self, with_color=True, override_color=None):
         '''Render with a few more options. Note: always recompiles.'''
         if override_color is None:

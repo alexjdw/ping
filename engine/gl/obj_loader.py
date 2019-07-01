@@ -125,18 +125,10 @@ def OBJ_to_shape(self, filename, swapyz=False, suppress_not_implemented=True):
     # TODO: Add additonal support for .obj files.
     # TODO: Add material support to the Shape2D class.
 
-    state = {
-        points: [],
-        normals: [],
-        texcoords: [],
-        shapes: [],
-        curmat: None,  # the currently selected material
-        swapxyz: swapxyz
-    }
-
-    ####################################
-    # Handlers for each possible line. #
-    ####################################
+    ##################################################
+    # These functions handle one type of declaration #
+    #  in an .obj file.                              #
+    ##################################################
 
     def addVertex(state, values):
         v = map(float, values[1:4])
@@ -185,7 +177,16 @@ def OBJ_to_shape(self, filename, swapyz=False, suppress_not_implemented=True):
                     )
             )
 
-    calls = {  # a dictionary of the above handlers
+    state = {
+        points: [],
+        normals: [],
+        texcoords: [],
+        shapes: [],
+        curmat: None,  # the currently selected material
+        swapxyz: swapxyz
+    }
+
+    calls = {  # 'a': b means b is called for lines starting with 'a'.
         'v': addVertex,
         'vn': addNormal,
         'vt': addTexture,
@@ -219,5 +220,5 @@ def OBJ_to_shape(self, filename, swapyz=False, suppress_not_implemented=True):
         texarg = True
 
     return Shape3D(state['shapes'],
-           enable_texture=texarg,
-           enable_normals=normsarg)
+                   enable_texture=texarg,
+                   enable_normals=normsarg)
