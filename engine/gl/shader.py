@@ -1,10 +1,12 @@
 '''A home for uncompiled strings of shaders.'''
 from importlib import import_module
-from OpenGL.GL import shaders
+from OpenGL.GL import shaders, GL_VERTEX, GL_FRAGMENT
+from contextlib import contextmanager
 from collections import namedtuple
 import os
 
 ShaderVar = namedtuple('ShaderVar', 'class type name')
+
 
 def _pipeflags(flags):
     '''
@@ -63,7 +65,7 @@ class Shader:
                 fullpath = file
             else:
                 here = os.path.dirname(os.path.abspath(__file__))
-                fullpath = os.path.join(here, '_shaders', name + '.shader')
+                fullpath = os.path.join(here, '_shaders', file + '.shader')
             with open(fullpath) as f:
                 self._code = f.read()
         except Exception as e:
@@ -84,7 +86,7 @@ class Shader:
         self = cls(None, shadertype)
         self.file = None
         self._code = code
-        self.shader = shaders.compileShader(self._code, _pipeflags(GL_FLAGS))
+        self.shader = shaders.compileShader(self._code, shadertype)
         self.parse()
         return self
 
@@ -102,9 +104,14 @@ class ShaderPair:
         self.vert = vertex_shader
         self.frag = fragment_shader
         self.models = []
+        self._program = shaders.compileProgram(self.vert.shader, self.frag.shader)
 
-    def addModel(self):
-        pass
+    def addModel(self, model):
+        "Add a Shape3D model to be rendered with this shader pair."
+        self.models.append(model)
 
-    def render(self):
-        pass
+    @contextmanager
+    def rendering(self):
+        shaders.glUseProgram(self._program)
+        yield self
+        shaders.glUseProgram(0)

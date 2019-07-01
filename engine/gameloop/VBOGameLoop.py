@@ -13,13 +13,9 @@ from contextlib import contextmanager
 
 
 class VBOGameLoop(GameLoop):
-    def __init__(self, drawables, translate=(0., 0., -.1), rotate=(0., 0., 0., 0.)):
+    def __init__(self, shaders):
         self.exit_flag = False
-        if not isinstance(drawables, set):
-            raise TypeError("drawables should be a Set. Sets provide \
-                fast lookup and avoid duplicates")
-
-        self.drawables = drawables
+        self.shaders = shaders
         self._event_handlers = {}
         self.state = {}  # a dictionary for storing in-game variables.
         self.exit_flag = False  # a flag to exit the game.
@@ -44,14 +40,39 @@ class VBOGameLoop(GameLoop):
 
         # Drawing mode.
         glMatrixMode(GL_MODELVIEW)
-        glTranslate(*self.translate)  # initial translation/camera angle
-        glRotate(*self.rotate)
-        glClearColor(.2,.2,.2,1)
+        # glTranslate(0,0,0)  # initial translation/camera angle
+        # glRotate(0,0,0,0)   # rotate the camera
+        # glScale(1,1,1)      # set the scaling
+        glClearColor(.2, .2, .2, 1)
 
     def begin(self, display, clock, clock_rate):
         "Begins the game loop on the given display."
-        self.GLsetup(display)
         self.exit_flag = False
+
+        # ### Pipeline ### #
+        # Compile models into VBOs
+        # Prep lights, cameras
+        # Load model VBOs into VBAs by shader
+        # Load filters
+        # ## Main Loop
+        # - Handle events
+        # - Draw VBAs
+        # - Apply filters
+        # - Show screen
+        # - exit_flag = True or trigger pygame.QUIT to exit loop
+        # ##
+        # Event loop ends. Clean up everything.
+
+        # Display init
+        self.GLsetup(display)
+
+        # Create buffers, compile models and put them in the buffers
+        self.createBuffers()
+        self.compileModels()
+
+        # Add other objects to the scene
+        self.addLighting()
+        self.addCameras()
 
         # Main Loop
         while not self.exit_flag:
@@ -63,28 +84,26 @@ class VBOGameLoop(GameLoop):
 
     def render(self):
         "Override for custom drawing."
-        # Render all the things
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
-        for d in self.drawables:
-            verticies, shader, mode = d.render()
-            vbo = VBO(verticies)
-            try:
-                # Add the shader.
-                shaders.glUseProgram(shader)
-                try:
-                    # Add the VBO to gfxcard memory
-                    vbo.bind()
-                    glEnableClientState(GL_VERTEX_ARRAY)
-                    glVertexPointerf(vbo)
-                    glDrawArrays(mode, 0, len(verticies))
-                finally:
-                    # Release the VBO memory in the graphics card
-                    vbo.unbind()
-                    glDisableClientState(GL_VERTEX_ARRAY)
-            finally:
-                # Remove the shader
-                shaders.glUseProgram(0)
-        
+        for shader in self.shaders:
+            with shader.rendering():  # Apply shader program
+                for m in shader.models:
+                    verticies, mode, offset = d.render()
+                    vbo = VBO(verticies)
+                    try:
+                        # Add the VBO to gfxcard memory
+                        vbo.bind()
+                        glEnableClientState(GL_VERTEX_ARRAY)
+                        glVertexPointerf(vbo)
+                        glDrawArrays(mode, 0, len(verticies))
+                    finally:
+                        # Release the VBO memory in the graphics card
+                        vbo.unbind()
+                        glDisableClientState(GL_VERTEX_ARRAY)
+
+        # TODO Apply postprocessing filters
+
+        # Put it on the screen.
         pygame.display.flip()
 
     def handle_events(self):

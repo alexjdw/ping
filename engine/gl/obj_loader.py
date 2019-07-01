@@ -125,10 +125,8 @@ def OBJ_to_shape(self, filename, swapyz=False, suppress_not_implemented=True):
     # TODO: Add additonal support for .obj files.
     # TODO: Add material support to the Shape2D class.
 
-    ##################################################
-    # These functions handle one type of declaration #
-    #  in an .obj file.                              #
-    ##################################################
+    # These functions handle one declaration in the obj file.
+    # example: 'v .1 .2 .3' calls addVertex('v', '.1', '.2', '.3')
 
     def addVertex(state, values):
         v = map(float, values[1:4])
@@ -171,7 +169,7 @@ def OBJ_to_shape(self, filename, swapyz=False, suppress_not_implemented=True):
                 norms_arg = norms
         state['shapes'].append(
             Shape2D(points,
-                    textures=tex_arg,
+                    texcoords=tex_arg,
                     normals=norms_arg,
                     mode=GL_POLYGON
                     )

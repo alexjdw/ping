@@ -7,14 +7,20 @@ from random import random
 
 class Shape2D(ReprMixin):
     "A 2d polygon made from a collection of points."
-    def __init__(self, points, color=None,
-                 textcoords=None, normals=None,
-                 mode=GL_TRIANGLES):
+    def __init__(self,
+                 points,
+                 texcoords=None,
+                 normals=None,
+                 mode=GL_TRIANGLES,
+                 color=None):
         '''
-        :param points: A flat list of Point3D objects. Must conform to the shape
-          specified by mode, i.e. GL_TRIANGLES must have a len divisible by 3,
-          quads by 4. Defaults to GL_TRIANGLES.
-        :param color: A tuple representing a color.
+        :param points: A flat list of Point3D objects. Must conform to the
+          shape specified by mode, i.e. TRIANGLES must have a len divisible
+          by 3, QUADS by 4. Defaults to GL_TRIANGLES.
+        :param color: A tuple representing a color. Generally used if there is
+          no texture. Applies the color to any points that don't have a color.
+        :param texcoords: A list of tuples representing texture coordinates.
+        :param normals: A list of tuples representing normals.
         '''
         if mode == GL_TRIANGLES:
             if len(points) % 3:
@@ -35,7 +41,13 @@ class Shape2D(ReprMixin):
                         \t p5,p6,p7,p8]  # second quad, etc.''')
         self.mode = mode
         self.points = []
-        self.color = color
+
+        if color is not None:
+            for point in self.points:
+                if point.color is None:
+                    point.color = color
+        
+        self._VBO_is_compiled = False
 
     def GLDraw(self):
         "Old-style drawing. Preserved for compatibility. glBegin() before calling."
@@ -53,16 +65,14 @@ class Shape2D(ReprMixin):
 
     def compile_VBO(self, include_color=True,
                     force_color=False, color=None):
-        '''Saves a numpy array containing the vertexes & texture/color
-        data for this shape.'''
-        # Shapes do not include a full render property
-        # and offsets as they are meant to be faces of
-        # a 3D object.
-        vbo = []
-        if color is None and include_color:
-            color = self.color
-        for p in self.points:
-            p.compile_VBO(include_color, force_color, color)
-            vbo.append(p._VBO)
+        '''
+        Saves VBO array containing the vertexes & texture/color
+        data for this shape.
+        '''
+        if not self._VBO_is_compiled:
+            vbo = []
+            for p in self.points:
+                p.compile_VBO()
+                vbo.append(p._VBO)
 
-        self._VBO = np.array(vbo, 'f')
+            self._VBO = np.array(vbo, 'f')
