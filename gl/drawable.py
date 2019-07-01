@@ -1,4 +1,4 @@
-'A collection of drawable objects. Objects implement .surface or .draw()'
+'A collection of drawable objects. Objects should follow the example of other drawables.'
 
 from ._drawable.Sphere3D import Sphere3D
 from ._drawable.Point3D import Point3D

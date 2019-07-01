@@ -22,11 +22,12 @@ clock = pygame.time.Clock()
 # drawables = [ball, net, player, table]
 
 
-drawables = {cube(1, Point3D(-.5, -.5, .2))}
+drawables = {cube(.2, Point3D(-.1, -.1, .1))}
 glEnable(GL_POLYGON_SMOOTH)
 # glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST)
 glEnable(GL_BLEND)
 glEnable(GL_DEPTH_TEST)
+glLoadIdentity()
 glMatrixMode(GL_PROJECTION)
 
 with VBOGameLoop(drawables) as loop:
@@ -41,7 +42,7 @@ with VBOGameLoop(drawables) as loop:
         else:
             pos = loop.state['pos'][0]
         pos = event.pos - pos
-        glRotatef(5, pos[0], pos[1], 0)
+        glRotatef(5, pos[1], pos[0], 0)
 
     from collections import deque
     loop.state['pos'] = deque()

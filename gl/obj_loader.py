@@ -2,6 +2,8 @@
 
 import pygame
 from OpenGL.GL import *
+from .drawable import Point3D, Shape2D, Shape3D
+
 
 def MTL(filename):
     contents = {}
@@ -32,6 +34,8 @@ def MTL(filename):
             mtl[values[0]] = map(float, values[1:])
     return contents
 
+
+# TODO: Convert to VBO format.
 class OBJ:
     def __init__(self, filename, swapyz=False):
         """Loads a Wavefront OBJ file. """
@@ -103,3 +107,90 @@ class OBJ:
             glEnd()
         glDisable(GL_TEXTURE_2D)
         glEndList()
+
+
+class OBJ2:
+    def __init__(self, filename, swapxyz=False, suppress_not_implemented=True):
+        """Loads a Wavefront OBJ file as a VBO. """
+        self.points = []
+        self.normals = []
+        self.texcoords = []
+        self.faces = []
+        self.swapxyz = swapxyz
+        self.curmat = None  # the currently selected material
+
+        # Load verticies, faces, MTLs.
+        options = {
+            'v': self.addVertex,
+            'vn': self.addNormal,
+            'vt': self.addTexture,
+            'usemtl': self.setMaterial,
+            'usemat': self.setMaterial,
+            'f': self.addPolygon}
+        with open(filename, "r") as f:
+            for line in f:
+                if line.startswith('#'):  # line is a comment
+                    continue
+                values = line.split()
+                if not values:  # line is blank
+                    continue
+
+                # call appropriate function
+                try:
+                    options[values[0]](values)
+                except KeyError:
+                    if not suppress_not_implemented:
+                        raise NotImplementedError(
+                            f"Unable to parse .obj files with {values[0]} elements."
+                            )
+
+        def render(self):
+            "Returns a VBO-style numpy array."
+            return (self._VBO, self.shader, GL_POLYGON)
+
+    def addVertex(self, values):
+        v = map(float, values[1:4])
+        if self.swapyz:
+            v = (v[0], v[2], v[1])
+        self.points.append(Point3D(v))
+
+    def addNormal(self, values):
+        v = map(float, values[1:4])
+        if self.swapyz:
+            v = v[0], v[2], v[1]
+        self.normals.append(v)
+
+    def addTexture(self, values):
+        self.texcoords.append(map(float, values[1:3]))
+
+    def setMaterial(self, values):
+        self.curmat = values[1]
+
+    def setMTL(self, values):
+        self.mtl = MTL(values[1])
+
+    def addPolygon(self, values):
+        points = []
+        texcoords = []
+        tex_arg = None
+        norms = []
+        norms_arg = None
+        for v in values[1:]:
+            # Split the vert/texture/normal triplet into the elements,
+            # which refer to the index of their corresponding point object.
+            items = v.split('/')
+            items = [int(i) for i in items]
+            points.append(self.points[items[0] - 1])
+            if len(items) >= 2 and len(items[1]) > 0:
+                texcoords.append(self.texcoords(items[1]))
+                tex_arg = texcoords
+            if len(items) >= 3 and len(items[2]) > 0:
+                norms.append(self.normals(items[2]))
+                norms_arg = norms
+        self.shapes.append(
+            Shape2D(points,
+                    textures=tex_arg,
+                    normals=norms_arg,
+                    mode=GL_POLYGON
+                )
+            )

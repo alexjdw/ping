@@ -11,11 +11,19 @@ from ..utils import ReprMixin
 
 class Shape3D(ReprMixin):
     "A 3d shape made from a collection of 2d faces."
-    def __init__(self, shapes_list, color=None, offset=None, shader=None):
+    def __init__(self, shapes_list, 
+            color=None,
+            offset=None,
+            shader=None,
+            enable_texture=False,
+            enable_normals=False):
         self.shapes = shapes_list
         self.color = color
         self.offset = offset
         self._VBO_is_compiled = False
+        self.enable_texture = enable_texture
+        self.enable_normals = enable_normals
+
         if shader is None:
             # No shader provided. Fill with color.
             # Create the C code for the vertex shader.
@@ -109,12 +117,12 @@ def box(height, width, depth, first_point, color=None):
         points[index] = Point3D(point[0], point[1], point[2], color)
 
     shapes = [
-        Rect2D([points[0], points[1], points[2], points[3]], (.1, .8, .8)),
-        Rect2D([points[1], points[5], points[3], points[7]], (.1, .9, .1)),
-        Rect2D([points[4], points[0], points[6], points[2]], (.3, .4, .5)),
-        Rect2D([points[4], points[5], points[0], points[1]], (.1, .1, .9)),
-        Rect2D([points[2], points[3], points[6], points[7]], (.5, .5, .5)),
-        Rect2D([points[5], points[4], points[7], points[6]], (.1, .5, .9)),
+        Rect2D([points[0], points[1], points[2], points[3]]),
+        Rect2D([points[1], points[5], points[3], points[7]]),
+        Rect2D([points[4], points[0], points[6], points[2]]),
+        Rect2D([points[4], points[5], points[0], points[1]]),
+        Rect2D([points[2], points[3], points[6], points[7]]),
+        Rect2D([points[5], points[4], points[7], points[6]]),
     ]
 
     return Shape3D(shapes, color)
