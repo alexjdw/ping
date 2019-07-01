@@ -1,8 +1,8 @@
 import pygame, numpy as np
 from OpenGL.GL import *
 from OpenGL.GLU import *
-from OpenGL.arrays import vbo
 from OpenGL.GL import shaders
+from OpenGL.arrays.vbo import VBO
 from .Point3D import Point3D
 from .Rect2D import Rect2D
 from .. import shader_presets
@@ -32,13 +32,23 @@ class Shape3D(ReprMixin):
     def compile_VBO(self, include_color=False,
                     force_color=False, color=None):
         "Compiles the verticies of all faces into a VBO and saves the ref."
+        if self._VBO_is_compiled:
+            return
         vbos = []
         for s in self.shapes:
             s.compile_VBO(include_color, force_color, color=color)
             vbos.append(s._VBO)
 
-        self._VBO = np.concatenate(vbos)
+        self._VBO = VBO(np.concatenate(vbos))
+        self._VBO.bind()
         self._VBO_is_compiled = True
+
+    def destroy_buffers(self):
+        if self._VBO_is_compiled:
+            self._VBO.unbind()
+
+    def __del__(self):
+        self.destroy_VBO()
 
 
 # Alternate constructors
