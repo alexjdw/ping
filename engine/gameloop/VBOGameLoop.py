@@ -88,15 +88,14 @@ class VBOGameLoop(GameLoop):
             with shader.rendering():
                 # Draw models with shader
                 for m in shader.models:
-                    vbo, mode, offset = m.render_data
+                    vbo, mode, offset = m.render_data  
                     try:
-                        vbo.bind()
-                        glEnableClientState(GL_VERTEX_ARRAY)
-                        glVertexPointerf(vbo)
+                        vbo.bind()                            
+                        m.rendering()
                         glDrawArrays(mode, 0, len(vbo))
                     finally:
                         vbo.unbind()
-                        glDisableClientState(GL_VERTEX_ARRAY)
+                        m.stop_rendering()
 
         # TODO Apply postprocessing filters
 

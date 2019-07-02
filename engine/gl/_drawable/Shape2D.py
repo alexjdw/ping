@@ -20,7 +20,7 @@ class Shape2D(ReprMixin):
         :param color: A tuple representing a color. Generally used if there is
           no texture. Applies the color to any points that don't have a color.
         :param texcoords: A list of tuples representing texture coordinates.
-        :param normals: A list of tuples representing normals.
+        :param normals: A single normal for the face.
         '''
         if mode == GL_TRIANGLES:
             if len(points) % 3:
@@ -63,17 +63,24 @@ class Shape2D(ReprMixin):
         # TODO
         pass
 
-    def compile_VBO(self, include_color=True,
-                    force_color=False, color=None):
+    def compile_VBO(self, force=False):
         '''
         Saves VBO array containing the vertexes & texture/color
         data for this shape.
         '''
-        if not self._VBO_is_compiled:
-            vbo = []
-            for p in self.points:
-                p.compile_VBO()
-                vbo.append(p._VBO)
+        if self._VBO_is_compiled and not force:
+            return
 
-            self._VBO = np.array(vbo, 'f')
-            self._VBO_is_compiled = True
+        vbo = []
+        try:
+            arr_format = self.points[0].compile_VBO(force=True)
+        except IndexError as e:
+            return
+
+        for p in self.points:
+            p.compile_VBO()
+            vbo.append(p._VBO)
+
+        self._VBO = np.array(vbo, 'f')
+        self._VBO_is_compiled = True
+        return arr_format

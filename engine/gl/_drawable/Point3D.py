@@ -2,6 +2,8 @@ import pygame, numpy as np
 from OpenGL.GL import *
 from ..utils import ReprMixin, vector
 from ..pallette import C_WHITE
+from random import random
+
 
 
 class Point3D(ReprMixin):
@@ -16,6 +18,8 @@ class Point3D(ReprMixin):
         self.texcoords = texcoords
         self.normal = normal
         self.color = color
+        if self.color is None:
+            self.color = (random(), random(), random())
         self._VBO_is_compiled = False
 
     def GLDraw(self):
@@ -27,15 +31,18 @@ class Point3D(ReprMixin):
         glEnd()
 
     def compile_VBO(self, force=False):
-        if not self._VBO_is_compiled and not force:
-            self._VBO = list(self.vertex)
-            if self.texcoords:
-                self._VBO.extend(self.texcoords)
-            if self.normal:
-                self._VBO.extend(self.normal)
-            if self.color:
-                self._VBO.extend(self.color)
-            self._VBO_is_compiled = True
-            # Note; we are not compiling to numpy here because
-            # it complicates the code a bit; numpy.append doesn't
-            # work in the same way that [].append works.
+        if self._VBO_is_compiled and not force:
+            return
+        self._VBO = list(self.vertex)
+        arr_format = 'v'
+        if self.texcoords:
+            arr_format += 't'
+            self._VBO.extend(self.texcoords)
+        if self.normal:
+            arr_format += 'n'
+            self._VBO.extend(self.normal)
+        if self.color:
+            arr_format += 'c'
+            self._VBO.extend(self.color)
+        self._VBO_is_compiled = True
+        return ''.join(arr_format)
