@@ -13,14 +13,13 @@ from contextlib import contextmanager
 
 
 class VBOGameLoop(GameLoop):
-    def __init__(self, shaders):
-        self.exit_flag = False
-        self.shaders = shaders
+    def __init__(self, shaders=None, cameras=None, lights=None, filters=None):
+        self.shaders = shaders if shaders else []
+        self.cameras = cameras if cameras else []
+        self.lights = lights if lights else []
+        self.filters = filters if filters else []
         self._event_handlers = {}
         self.state = {}  # a dictionary for storing in-game variables.
-        self.exit_flag = False  # a flag to exit the game.
-        self.translate = translate
-        self.rotate = rotate
 
     def GLsetup(self, display):
         "Set up OpenGL."
@@ -30,7 +29,7 @@ class VBOGameLoop(GameLoop):
         # https://www.sjbaker.org/steve/omniv/projection_abuse.html
         glMatrixMode(GL_PROJECTION)
         gluPerspective(0, 
-                       (display.get_width() / display.get_height()),
+                       (display.get_height() / display.get_width()),
                        .1,
                        10.)
         glEnable(GL_POLYGON_SMOOTH)
@@ -42,14 +41,15 @@ class VBOGameLoop(GameLoop):
         glMatrixMode(GL_MODELVIEW)
         # glTranslate(0,0,0)  # initial translation/camera angle
         # glRotate(0,0,0,0)   # rotate the camera
-        # glScale(1,1,1)      # set the scaling
-        glClearColor(.2, .2, .2, 1)
+        # glScale(1,1,1)      # object scale
+        # glClearColor(.2, .2, .2, 1)  # background color
 
     def begin(self, display, clock, clock_rate):
         "Begins the game loop on the given display."
         self.exit_flag = False
 
         # ### Pipeline ### #
+        # Initialize the display
         # Compile models into VBOs
         # Prep lights, cameras
         # Load model VBOs into VBAs by shader
@@ -67,37 +67,34 @@ class VBOGameLoop(GameLoop):
         self.GLsetup(display)
 
         # Create buffers, compile models and put them in the buffers
-        self.createBuffers()
-        self.compileModels()
+        self.create_buffers()
 
         # Add other objects to the scene
-        self.addLighting()
-        self.addCameras()
+        self.add_lighting()
+        self.add_cameras()
 
         # Main Loop
         while not self.exit_flag:
             self.handle_events()
             self.render()
-            # clear the screen
             clock.tick(clock_rate)
         # end game loop
 
     def render(self):
         "Override for custom drawing."
-        glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
+        # Clear the screen buffer
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         for shader in self.shaders:
-            with shader.rendering():  # Apply shader program
+            with shader.rendering():
+                # Draw models with shader
                 for m in shader.models:
-                    verticies, mode, offset = d.render()
-                    vbo = VBO(verticies)
+                    vbo, mode, offset = m.render_data
                     try:
-                        # Add the VBO to gfxcard memory
                         vbo.bind()
                         glEnableClientState(GL_VERTEX_ARRAY)
                         glVertexPointerf(vbo)
-                        glDrawArrays(mode, 0, len(verticies))
+                        glDrawArrays(mode, 0, len(vbo))
                     finally:
-                        # Release the VBO memory in the graphics card
                         vbo.unbind()
                         glDisableClientState(GL_VERTEX_ARRAY)
 
@@ -115,6 +112,23 @@ class VBOGameLoop(GameLoop):
             if event.type in self._event_handlers:
                 self._event_handlers[event.type](self, event)
 
+    def cleanup(self):
+        pass
+
+    def create_buffers(self):
+        '''
+        Each model creates and stores a reference to its own
+        Vertex Buffer Object (VBO).
+        '''
+        for shader in self.shaders:
+            for model in shader.models:
+                model.compile_VBO()
+
+    def add_lighting(self):
+        pass
+
+    def add_cameras(self):
+        pass
 
     def __enter__(self):  # A place to load game assets. Override as needed.
         return self

@@ -10,10 +10,13 @@ class Point3D(ReprMixin):
     def __init__(self,
                  x, y, z,
                  texcoords=None,
-                 normals=None,
+                 normal=None,
                  color=None):
         self.vertex = (x, y, z)
+        self.texcoords = texcoords
+        self.normal = normal
         self.color = color
+        self._VBO_is_compiled = False
 
     def GLDraw(self):
         "Old-style drawing compatability. Call after glBegin()."
@@ -25,7 +28,7 @@ class Point3D(ReprMixin):
 
     def compile_VBO(self, force=False):
         if not self._VBO_is_compiled and not force:
-            self._VBO = self.vertex
+            self._VBO = list(self.vertex)
             if self.texcoords:
                 self._VBO.extend(self.texcoords)
             if self.normal:

@@ -11,12 +11,15 @@ from ..utils import ReprMixin
 
 class Shape3D(ReprMixin):
     "A 3d shape made from a collection of 2d faces."
-    def __init__(self, shapes_list, 
+    def __init__(self,
+                 shapes_list, 
                  color=None,
+                 mode=GL_TRIANGLES,
                  offset=None):
         self.shapes = shapes_list
         self.color = color
         self.offset = offset
+        self.mode = mode
         self._VBO_is_compiled = False
 
     def GLDraw(self):
@@ -40,15 +43,18 @@ class Shape3D(ReprMixin):
             vbos.append(s._VBO)
 
         self._VBO = VBO(np.concatenate(vbos))
-        self._VBO.bind()
         self._VBO_is_compiled = True
 
+    @property
+    def render_data(self):
+        return (self._VBO, self.mode, self.offset)
+
     def destroy_buffers(self):
-        if self._VBO_is_compiled:
+        if self._VBO.copied:
             self._VBO.unbind()
 
     def __del__(self):
-        self.destroy_VBO()
+        self.destroy_buffers()
 
 
 # Alternate constructors
@@ -81,10 +87,10 @@ def box(height, width, depth, first_point, color=None):
 
     return Shape3D(shapes, color)
 
-def cube(length, first_point, color=(0, 0, 0)):
+def cube(length, first_point, color=None):
     'Constructs a cube.'
     return box(length, length, length, first_point, color)
 
 
-def pyramid(base_len, base_wid, height, first_point, color=(0, 0, 0)):
+def pyramid(base_len, base_wid, height, first_point, color=None):
     pass

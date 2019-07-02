@@ -5,6 +5,7 @@ from OpenGL.GL import glRotatef
 from OpenGL.GLU import *
 # from pingpong.game_objects.testobjs import player, table, net, ball
 from gl.drawable import cube, Point3D
+from gl.shader import Shader, Pipeline
 from gl.constants import WIDTH, HEIGHT
 from gameloop.VBOGameLoop import VBOGameLoop
 from gameloop.GameLoop import GameLoop
@@ -18,13 +19,15 @@ gameDisplay = pygame.display.set_mode((WIDTH, HEIGHT), pygame.DOUBLEBUF|pygame.O
 pygame.display.set_caption('Ping Pong')
 clock = pygame.time.Clock()
 
-# Ordered!
-# drawables = [ball, net, player, table]
 
+drawables = {cube(.2, Point3D(-.3, -.3, .3))}
+vert = Shader('vertex_default', GL_VERTEX_SHADER)
+frag = Shader('fragment_default', GL_FRAGMENT_SHADER)
+pipeline = Pipeline(vert, frag)
+for d in drawables:
+    pipeline.add_model(d)
 
-drawables = {cube(.2, Point3D(-.1, -.1, .1))}
-
-with VBOGameLoop(drawables) as loop:
+with VBOGameLoop([pipeline]) as loop:
     def handle_mouse(loop, event):
         if not pygame.mouse.get_pressed()[0]:
             return

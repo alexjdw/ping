@@ -40,7 +40,7 @@ class Shape2D(ReprMixin):
                         \t[p1,p2,p3,p4, # first quad\n
                         \t p5,p6,p7,p8]  # second quad, etc.''')
         self.mode = mode
-        self.points = []
+        self.points = points
 
         if color is not None:
             for point in self.points:
