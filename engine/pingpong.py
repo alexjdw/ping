@@ -6,6 +6,7 @@ from OpenGL.GLU import *
 # from pingpong.game_objects.testobjs import player, table, net, ball
 from gl.drawable import cube, Point3D
 from gl.shader import Shader, Pipeline
+from gl.obj_loader import OBJ_to_shape
 from gl.constants import WIDTH, HEIGHT
 from gameloop.VBOGameLoop import VBOGameLoop
 from gameloop.GameLoop import GameLoop
@@ -19,8 +20,10 @@ gameDisplay = pygame.display.set_mode((WIDTH, HEIGHT), pygame.DOUBLEBUF|pygame.O
 pygame.display.set_caption('Ping Pong')
 clock = pygame.time.Clock()
 
+model = r'C:\Users\Alex\Documents\pingpong\engine\gl\assets\pingponggame\PingPongPaddle.obj'
+drawables = {OBJ_to_shape(model)}
 
-drawables = {cube(.2, Point3D(-.3, -.3, .3))}
+
 vert = Shader('vertex_default', GL_VERTEX_SHADER)
 frag = Shader('fragment_default', GL_FRAGMENT_SHADER)
 pipeline = Pipeline(vert, frag)

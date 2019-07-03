@@ -2,13 +2,12 @@ import pygame, numpy as np
 from OpenGL.GL import *
 from ..utils import ReprMixin, vector
 from ..pallette import C_WHITE
-from random import random
+from random import random, choice
 
-
-
+RANDO_COLORS = True
+rando_choices = [.4, .5, .6]
 class Point3D(ReprMixin):
-    "A vertex with additional spots for color, texture coords, and normals."
-
+    "A vertex with additional data for color, texture coords, and normals."
     def __init__(self,
                  x, y, z,
                  texcoords=None,
@@ -18,8 +17,8 @@ class Point3D(ReprMixin):
         self.texcoords = texcoords
         self.normal = normal
         self.color = color
-        if self.color is None:
-            self.color = (random(), random(), random())
+        if self.color is None and RANDO_COLORS:
+            self.color = (choice(rando_choices), choice(rando_choices), choice(rando_choices))
         self._VBO_is_compiled = False
 
     def GLDraw(self):

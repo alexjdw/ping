@@ -41,7 +41,7 @@ class VBOGameLoop(GameLoop):
         glMatrixMode(GL_MODELVIEW)
         # glTranslate(0,0,0)  # initial translation/camera angle
         # glRotate(0,0,0,0)   # rotate the camera
-        # glScale(1,1,1)      # object scale
+        glScale(.01, .01, .01)      # object scale
         # glClearColor(.2, .2, .2, 1)  # background color
 
     def begin(self, display, clock, clock_rate):

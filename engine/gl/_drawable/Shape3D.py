@@ -18,7 +18,7 @@ class Shape3D(ReprMixin):
                  offset=None):
         '''
         Builds a 3D shape from the given shape list with the given arguments.
-        
+
         :param shapes_list: The faces of the shape.
         :param color: Applies a color to any vertex with no color data.
         :param mode: GL drawing mode constant, normally GL_TRIANGLES.

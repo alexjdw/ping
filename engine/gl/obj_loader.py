@@ -109,12 +109,12 @@ class OBJ:
         glEndList()
 
 
-def OBJ_to_shape(self, filename, swapyz=False, suppress_not_implemented=True):
+def OBJ_to_shape(filename, swapyz=False, suppress_not_implemented=True):
     '''
     Loads a wavefront file and returns a Shape3D.
 
     :param filename: The absolute path of the file to load.
-    :param swapxyz: Swaps the y and z axes.
+    :param swapyz: Swaps the y and z axes.
     :param suppress_not_implemented: If a .obj file format feature is not
       implemented, throw a NotImplementedError when this is True. We haven't
       implemented the full .obj scope, so generally you should set this to
@@ -143,13 +143,13 @@ def OBJ_to_shape(self, filename, swapyz=False, suppress_not_implemented=True):
     def addTexture(state, values):
         state['texcoords'].append(map(float, values[1:3]))
 
-    def setMaterial(self, values):
+    def setMaterial(state, values):
         state['curmat'] = values[1]
 
-    def setMTL(self, values):
+    def setMTL(state, values):
         state['mtl'] = MTL(values[1])
 
-    def addPolygon(self, values):
+    def addPolygon(state, values):
         pcoords = []
         texcoords = []
         tex_arg = None
@@ -161,14 +161,14 @@ def OBJ_to_shape(self, filename, swapyz=False, suppress_not_implemented=True):
             items = v.split('/')
             items = [int(i) for i in items]
             pcoords.append(state['points'][items[0] - 1])
-            if len(items) >= 2 and len(items[1]) > 0:
-                texcoords.append(state['texcoords'](items[1]))
+            if len(items) >= 2:
+                texcoords.append(state['texcoords'][items[1] - 1])
                 tex_arg = texcoords
-            if len(items) >= 3 and len(items[2]) > 0:
-                norms.append(state['normals'](items[2]))
+            if len(items) >= 3:
+                norms.append(state['normals'][items[2] - 1])
                 norms_arg = norms
         state['shapes'].append(
-            Shape2D(points,
+            Shape2D(pcoords,
                     texcoords=tex_arg,
                     normals=norms_arg,
                     mode=GL_POLYGON
@@ -176,12 +176,12 @@ def OBJ_to_shape(self, filename, swapyz=False, suppress_not_implemented=True):
             )
 
     state = {
-        points: [],
-        normals: [],
-        texcoords: [],
-        shapes: [],
-        curmat: None,  # the currently selected material
-        swapxyz: swapxyz
+        'points': [],
+        'normals': [],
+        'texcoords': [],
+        'shapes': [],
+        'curmat': None,  # the currently selected material
+        'swapyz': swapyz
     }
 
     calls = {  # 'a': b means b is called for lines starting with 'a'.
@@ -216,7 +216,4 @@ def OBJ_to_shape(self, filename, swapyz=False, suppress_not_implemented=True):
         normsarg = True
     if len(state['texcoords']):
         texarg = True
-
-    return Shape3D(state['shapes'],
-                   enable_texture=texarg,
-                   enable_normals=normsarg)
+    return Shape3D(state['shapes'], color=(.5,.5,.5))
