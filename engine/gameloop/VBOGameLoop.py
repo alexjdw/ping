@@ -13,6 +13,7 @@ from contextlib import contextmanager
 
 
 class VBOGameLoop(GameLoop):
+    "A game loop that draws with Vertex Buffer Objects."
     def __init__(self, shaders=None, cameras=None, lights=None, filters=None):
         self.shaders = shaders if shaders else []
         self.cameras = cameras if cameras else []
@@ -84,18 +85,21 @@ class VBOGameLoop(GameLoop):
         "Override for custom drawing."
         # Clear the screen buffer
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        camera_matrix = np.array(glGetFloatv(GL_MODELVIEW_MATRIX))
         for shader in self.shaders:
             with shader.rendering():
                 # Draw models with shader
                 for m in shader.models:
-                    vbo, mode, offset = m.render_data  
+                    glLoadMatrixf(m.transform_matrix * camera_matrix)
+                    vbo, mode = m.render_data
                     try:
-                        vbo.bind()                            
+                        vbo.bind()
                         m.rendering()
                         glDrawArrays(mode, 0, len(vbo))
                     finally:
                         vbo.unbind()
                         m.stop_rendering()
+                        glLoadMatrixf(camera_matrix)
 
         # TODO Apply postprocessing filters
 

@@ -12,10 +12,12 @@ from ..utils import ReprMixin
 class Shape3D(ReprMixin):
     "A 3d shape made from a collection of 2d faces."
     def __init__(self,
-                 shapes_list, 
+                 shapes_list,
                  color=None,
                  mode=GL_TRIANGLES,
-                 offset=None):
+                 offset=None,
+                 rotate=None,
+                 scale=None):
         '''
         Builds a 3D shape from the given shape list with the given arguments.
 
@@ -30,7 +32,10 @@ class Shape3D(ReprMixin):
                 for p in s.points:
                     if p.color is None:
                         p.color = color
-        self.offset = offset
+        self.offset = offset if offset else np.identity(4, 'f')
+        self.rotate = rotate if rotate else np.identity(4, 'f')
+        self.scale = scale if scale else np.identity(4, 'f')
+        self._matrix = None
         self.mode = mode
         self._VBO_is_compiled = False
         self._VBO_contexts = []
@@ -68,10 +73,26 @@ class Shape3D(ReprMixin):
         self._VBO_is_compiled = True
 
     @property
+    def transform_matrix(self):
+        '''
+        The transform matrix is a way to adjust the position of an object
+        at draw time without overwriting all of its members.
+
+        This is calculated lazily; only if ._matrix doesn't exist, create it.
+        Modifying the offset, rotate, or scale will reset the value of _matrix
+        to None and cause it to recalculate the next time it's used. This
+        avoids repetitive calculations for objects that don't move.
+        '''
+        if not self._matrix is not None:
+            self._matrix = self.offset * self.rotate * self.scale
+            print(self._matrix)
+        return self._matrix
+
+    @property
     def render_data(self):
         if not self._VBO_is_compiled:
             self.compile_VBO()
-        return (self._VBO, self.mode, self.offset)
+        return (self._VBO, self.mode)
 
     def rendering(self):
         "Set up the rendering environment."
@@ -100,7 +121,7 @@ class Shape3D(ReprMixin):
             glColorPointer(3, GL_FLOAT, 24, self._VBO + byte_offset)
             byte_offset += 12
             self._clientstates.append(GL_COLOR_ARRAY)
-        
+
     def stop_rendering(self):
         "Tear down the rendering environment."
         for state in self._clientstates:
@@ -111,6 +132,33 @@ class Shape3D(ReprMixin):
         if hasattr(self, '_VBO'):
             del self._VBO
         self.stop_rendering()
+
+    # The below three properties are used to in the transform matrix.
+    # Resetting the matrix to None enables a lazy calculation.
+    def get_offset(self):
+        return self._offset
+
+    def set_offset(self, val):
+        self._matrix = None
+        self._offset = val
+
+    def get_rotate(self):
+        return self._rotate
+
+    def set_rotate(self, val):
+        self._matrix = None
+        self._rotate = val
+
+    def get_scale(self):
+        return self._scale
+
+    def set_scale(self, val):
+        self._matrix = None
+        self._scale = val
+
+    offset = property(get_offset, set_offset)
+    rotate = property(get_rotate, set_rotate)
+    scale = property(get_scale, set_scale)
 
     def __del__(self):
         self.destroy_buffers()
@@ -145,6 +193,7 @@ def box(height, width, depth, first_point, color=None):
     ]
 
     return Shape3D(shapes, color)
+
 
 def cube(length, first_point, color=None):
     'Constructs a cube.'

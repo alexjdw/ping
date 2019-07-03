@@ -42,11 +42,18 @@ with VBOGameLoop([pipeline]) as loop:
         else:
             pos = loop.state['pos'][0]
         pos = event.pos - pos
-        glRotatef(5, pos[1], pos[0], 0)
+
+    def handle_kbd(loop, event):
+        if event.key == pygame.K_LEFT:
+            for d in drawables:
+                offset = np.identity(4)
+                offset[0][3] = .1
+                d.offset = d.offset + offset
 
     from collections import deque
     loop.state['pos'] = deque()
     loop.define_handler(pygame.MOUSEMOTION, handle_mouse)
+    loop.define_handler(pygame.KEYDOWN, handle_kbd)
     loop.begin(gameDisplay, clock, 60)
 
 pygame.quit()
