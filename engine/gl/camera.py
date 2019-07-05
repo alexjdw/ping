@@ -117,7 +117,7 @@ class Camera(ReprMixin):
             if self._rotm is None:
                 self._rotm = transformations.euler_matrix(
                                 self._roll,
-                                -1 * self._roll,
+                                -1 * self._yaw,
                                 -1 * self._pitch,
                                 'szyx')
 
