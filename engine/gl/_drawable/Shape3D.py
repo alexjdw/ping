@@ -83,9 +83,9 @@ class Shape3D(ReprMixin):
         to None and cause it to recalculate the next time it's used. This
         avoids repetitive calculations for objects that don't move.
         '''
-        if not self._matrix is not None:
-            self._matrix = self.offset * self.rotate * self.scale
-            print(self._matrix)
+        if self._matrix is None:
+            self._matrix = np.matmul(np.matmul(self.offset, self.rotate),
+                                     self.scale)
         return self._matrix
 
     @property

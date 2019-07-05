@@ -17,8 +17,9 @@ class VBOGameLoop(GameLoop):
     def __init__(self, shaders=None, cameras=None, lights=None, filters=None):
         self.shaders = shaders if shaders else []
         self.cameras = cameras if cameras else []
+        self.view = cameras[0] if len(cameras) else None
         self.lights = lights if lights else []
-=       self.filters = filters if filters else []
+        self.filters = filters if filters else []
 
         self._event_handlers = {}
         self.state = {}  # a dictionary for storing in-game variables.
@@ -29,11 +30,6 @@ class VBOGameLoop(GameLoop):
 
         # Set up the drawing field.
         # https://www.sjbaker.org/steve/omniv/projection_abuse.html
-        glMatrixMode(GL_PROJECTION)
-        gluPerspective(0, 
-                       (display.get_height() / display.get_width()),
-                       .1,
-                       10.)
         glEnable(GL_POLYGON_SMOOTH)
         glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST)
         glEnable(GL_BLEND)
@@ -41,9 +37,6 @@ class VBOGameLoop(GameLoop):
 
         # Drawing mode.
         glMatrixMode(GL_MODELVIEW)
-        # glTranslate(0,0,0)  # initial translation/camera angle
-        # glRotate(0,0,0,0)   # rotate the camera
-        glScale(.01, .01, .01)      # object scale
         # glClearColor(.2, .2, .2, 1)  # background color
 
     def begin(self, display, clock, clock_rate):
@@ -86,12 +79,12 @@ class VBOGameLoop(GameLoop):
         "Override for custom drawing."
         # Clear the screen buffer
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-        camera_matrix = np.array(glGetFloatv(GL_MODELVIEW_MATRIX))
         for shader in self.shaders:
             with shader.rendering():
                 # Draw models with shader
                 for m in shader.models:
-                    glLoadMatrixf(m.transform_matrix * camera_matrix)
+                    glLoadMatrixf(
+                        np.matmul(m.transform_matrix, self.view.matrix))
                     vbo, mode = m.render_data
                     try:
                         vbo.bind()
@@ -100,8 +93,7 @@ class VBOGameLoop(GameLoop):
                     finally:
                         vbo.unbind()
                         m.stop_rendering()
-                        glLoadMatrixf(camera_matrix)
-
+        glLoadIdentity()
         # TODO Apply postprocessing filters
 
         # Put it on the screen.

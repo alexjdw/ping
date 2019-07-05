@@ -1,5 +1,4 @@
 import numpy as np
-import math
 from .utils import ReprMixin
 from .utils import transformations
 
@@ -12,12 +11,16 @@ class Camera(ReprMixin):
         self._rotate = np.array((0, 0))
         self._zoom = 1
         self._transm = None
+        self._yaw = 0.
+        self._pitch = 0.
+        self._roll = 0.
         self._rotm = None
         self._zoomm = None
+        self._matrix = None
 
     def move(self, x, y, z):
         'Moves the camera (x, y, z) units from its current position.'
-        self._position = self._position - (x, y, z)
+        self._position = self._position + (x, y, z)
         self._transm = None
 
     def relative_move(self, right, up, forward):
@@ -34,7 +37,7 @@ class Camera(ReprMixin):
         self._matrix = None
         self._transm = None
 
-    def rotate(self, left_angle, forward_angle, tilt_angle):
+    def rotate(self, left_angle, forward_angle, tilt_angle, degrees=True):
         '''
         Rotate relatively according to the current angle.
 
@@ -47,13 +50,15 @@ class Camera(ReprMixin):
         forward_angle rotates around the x axis, and tilt_angle
         rotates around the z axis.
         '''
-        if self._rotm is None:
-            self._rotm = np.identity(4)
+        if degrees:
+            left_angle = np.deg2rad(left_angle)
+            forward_angle = np.deg2rad(forward_angle)
+            tilt_angle = np.deg2rad(tilt_angle)
+        self._yaw -= left_angle
+        self._pitch -= forward_angle
+        self._roll += tilt_angle
 
-        self._rotm = self._rotm * \
-            transformations.euler_matrix(-1*tilt_angle,
-                                         -1*forward_angle,
-                                         -1*left_angle)
+        self._rotm = None
         self._matrix = None
 
     def set_rotation(self, left_angle, forward_angle, tilt_angle, degrees=True):
@@ -65,7 +70,6 @@ class Camera(ReprMixin):
         :param degrees: If true, input angles in degrees. If false, input
           angles in radians.
         '''
-        # TODO
         if degrees:
             left_angle = np.degtorad(left_angle)
             forward_angle = np.degtorad(forward_angle)
@@ -111,8 +115,14 @@ class Camera(ReprMixin):
                 self._zoomm[1][1] = self._zoom
                 self._zoomm[2][2] = self._zoom
             if self._rotm is None:
-                self._rotm = np.identity(4)
+                self._rotm = transformations.euler_matrix(
+                                self._roll,
+                                -1 * self._roll,
+                                -1 * self._pitch,
+                                'szyx')
 
-            self.matrix = self._transm * self._rotm * self._zoomm
+            self._matrix = np.matmul(np.matmul(self._transm, self._rotm),
+                                     self._zoomm)
+            print(self._matrix)
 
         return self._matrix

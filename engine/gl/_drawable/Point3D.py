@@ -5,7 +5,7 @@ from ..pallette import C_WHITE
 from random import random, choice
 
 RANDO_COLORS = True
-rando_choices = [.4, .5, .6]
+rando_choices = [.1, .6]
 class Point3D(ReprMixin):
     "A vertex with additional data for color, texture coords, and normals."
     def __init__(self,
@@ -18,7 +18,7 @@ class Point3D(ReprMixin):
         self.normal = normal
         self.color = color
         if self.color is None and RANDO_COLORS:
-            self.color = (choice(rando_choices), choice(rando_choices), choice(rando_choices))
+            self.color = (random(), random(), random())
         self._VBO_is_compiled = False
 
     def GLDraw(self):
