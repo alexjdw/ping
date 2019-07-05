@@ -29,7 +29,6 @@ class VBOGameLoop(GameLoop):
         glLoadIdentity()
 
         # Set up the drawing field.
-        # https://www.sjbaker.org/steve/omniv/projection_abuse.html
         glEnable(GL_POLYGON_SMOOTH)
         glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST)
         glEnable(GL_BLEND)

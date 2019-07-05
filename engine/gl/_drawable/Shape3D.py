@@ -133,6 +133,19 @@ class Shape3D(ReprMixin):
             del self._VBO
         self.stop_rendering()
 
+    def move(self, x, y, z):
+        "Moves the shape around the world."
+        self.offset = self.offset + np.array(
+                [[1, 0, 0, 0],
+                 [0, 1, 0, 0],
+                 [0, 0, 1, 0],
+                 [x, y, z, 1]])
+
+    def move_relative_to_camera(self, right, up, back):
+        "Moves the shape relative to the camera position."
+        # TODO
+        pass
+
     # The below three properties are used to in the transform matrix.
     # Resetting the matrix to None enables a lazy calculation.
     def get_offset(self):

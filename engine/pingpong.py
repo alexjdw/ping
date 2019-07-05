@@ -53,32 +53,32 @@ with VBOGameLoop([pipeline], cameras=[camera]) as loop:
         if event.key == pygame.K_LEFT:
             for d in drawables:
                 offset = np.zeros((4, 4))
-                offset[0][3] = .5
+                offset[3][0] = .5
                 d.offset = d.offset + offset
         if event.key == pygame.K_RIGHT:
             for d in drawables:
                 offset = np.zeros((4, 4))
-                offset[0][3] = -.5
+                offset[3][0] = -.5
                 d.offset = d.offset + offset
         if event.key == pygame.K_DOWN:
             for d in drawables:
                 offset = np.zeros((4, 4))
-                offset[1][3] = -.5
+                offset[3][1] = -.5
                 d.offset = d.offset + offset
         if event.key == pygame.K_UP:
             for d in drawables:
                 offset = np.zeros((4, 4))
-                offset[1][3] = .5
+                offset[3][1] = .5
                 d.offset = d.offset + offset
         if event.key == pygame.K_z:
             for d in drawables:
                 offset = np.zeros((4, 4))
-                offset[2][3] = -.5
+                offset[3][2] = -.5
                 d.offset = d.offset + offset
         if event.key == pygame.K_x:
             for d in drawables:
                 offset = np.zeros((4, 4))
-                offset[2][3] = .5
+                offset[3][2] = .5
                 d.offset = d.offset + offset
 
         if event.key == pygame.K_SPACE:

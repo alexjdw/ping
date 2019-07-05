@@ -18,7 +18,7 @@ class Point3D(ReprMixin):
         self.normal = normal
         self.color = color
         if self.color is None and RANDO_COLORS:
-            self.color = (random(), random(), random())
+            self.color = (random() / 3 + .6, random() / 3 + .6, random() / 3 + .6)
         self._VBO_is_compiled = False
 
     def GLDraw(self):
@@ -30,6 +30,12 @@ class Point3D(ReprMixin):
         glEnd()
 
     def compile_VBO(self, force=False):
+        '''
+        Compiles the point to VBO format (a flat array), then returns
+        the ordering/format of the array in string form. Data that's not
+        present is omitted, so a return val of 'vt' means only vertex and
+        texture coords are included.
+        '''
         if self._VBO_is_compiled and not force:
             return
         self._VBO = list(self.vertex)
@@ -44,4 +50,4 @@ class Point3D(ReprMixin):
             arr_format += 'c'
             self._VBO.extend(self.color)
         self._VBO_is_compiled = True
-        return ''.join(arr_format)
+        return arr_format

@@ -4,7 +4,7 @@ from .utils import transformations
 
 
 class Camera(ReprMixin):
-    "A camera object. Use to position viewport."
+    "A camera object. Use to position the viewport."
     def __init__(self):
         'Initializes the camera at 0,0,0 with no rotation.'
         self._position = np.array((0, 0, 0), 'f')
