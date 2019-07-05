@@ -18,7 +18,8 @@ class VBOGameLoop(GameLoop):
         self.shaders = shaders if shaders else []
         self.cameras = cameras if cameras else []
         self.lights = lights if lights else []
-        self.filters = filters if filters else []
+=       self.filters = filters if filters else []
+
         self._event_handlers = {}
         self.state = {}  # a dictionary for storing in-game variables.
 
