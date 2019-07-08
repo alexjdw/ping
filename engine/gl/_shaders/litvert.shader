@@ -1,5 +1,4 @@
 #version 420
-
 layout (location=0) in vec3 vertex_attrib;
 // in vec3 texcoord_attrib;
 layout (location=1) in vec3 normal_attrib;

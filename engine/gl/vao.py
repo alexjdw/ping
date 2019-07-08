@@ -13,10 +13,11 @@ from OpenGL.raw.GL.ARB.vertex_array_object import glGenVertexArrays, \
 
 VptrArgs = namedtuple("VptrArgs", "index size typ normalized stride pointer")
 
+
 class VAO(ReprMixin):
     def __init__(self, locations):
         self.locations = locations
-        self.VBOs = set()
+        self.VBOs = []
         self.vptr_args = []
         self._index = GLuint(0)
         glGenVertexArrays(1, self._index)
@@ -38,9 +39,9 @@ class VAO(ReprMixin):
 
     def add_VBO(self, VBO):
         if not (self._bound):
-            raise ValueError("VAO is not currently bound.")
+            raise VAOError("VAO is not currently bound.")
 
-        self.VBOs.add(VBO)
+        self.VBOs.append(VBO)
         try:
             VBO.bind()
             for args in self.vptr_args:
@@ -56,3 +57,6 @@ class VAO(ReprMixin):
     def unbind(self):
         glBindVertexArray(0)
         self._bound = False
+
+class VAOError(Exception):
+    pass

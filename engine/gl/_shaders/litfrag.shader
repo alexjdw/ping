@@ -9,13 +9,8 @@ uniform float light_ambient_weight;
 uniform vec3 light_ambient_color;
 
 uniform vec3 light_pos;
-uniform vec3 light_dir;
 uniform vec3 light_color;
 uniform float light_glare;   // Spectacular weight
-
-uniform mat4 model;
-uniform mat4 view;
-uniform mat4 projection;
 
 void main() {
     // ambient

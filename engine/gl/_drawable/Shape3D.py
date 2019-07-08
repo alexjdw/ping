@@ -75,7 +75,7 @@ class Shape3D(ReprMixin):
     @property
     def transform_matrix(self):
         '''
-        The transform matrix is a way to adjust the position of an object
+        The transform matrix is a way to transform of an object
         at draw time without overwriting all of its members.
 
         This is calculated lazily; only if ._matrix doesn't exist, create it.

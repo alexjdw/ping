@@ -36,7 +36,7 @@ class VBOGameLoop(GameLoop):
         Sy = near/r
         Sz = -1 * (far + near)/(far - near)
         Pz = -1 * (2 * far * near)/(far - near)
-        self.perspective = np.array(
+        self.projection = np.array(
             [[Sx, 0, 0, 0],
              [0, Sy, 0, 0],
              [0, 0, Sz, Pz],
@@ -81,6 +81,7 @@ class VBOGameLoop(GameLoop):
         self.add_cameras()
 
         # Main Loop
+        self.flaggo = True
         while not self.exit_flag:
             self.handle_events()
             self.render()
@@ -90,22 +91,46 @@ class VBOGameLoop(GameLoop):
     def render(self):
         "Override for custom drawing."
         # Clear the screen buffer
+        glClearColor(.5,.5,.5,0)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         for shader in self.shaders:
             with shader.rendering():
+                # Set view and perspective
+                glUniformMatrix4fv(
+                    shader.uniforms['view'][0],
+                    1,
+                    GL_FALSE,
+                    self.view.matrix)
+                glUniformMatrix4fv(
+                    shader.uniforms['projection'][0],
+                    1,
+                    GL_FALSE,
+                    self.projection
+                )
                 # Draw models with shader
                 for m in shader._models:
                     vbo, mode = m.render_data
                     try:
-                        vbo.bind()
+                        # Set the model's transform matrix uniform
+                        glUniformMatrix4fv(
+                            shader.uniforms['model'][0],
+                            1,
+                            GL_FALSE,
+                            m.transform_matrix
+                        )
+                        vbo.bind()  # Binds the VBO.
                         glDrawArrays(mode, 0, len(vbo))
+                        if self.flaggo:
+                            self.flaggo = False
                     finally:
                         vbo.unbind()
+            
         glLoadIdentity()
         # TODO Apply postprocessing filters
 
         # Put it on the screen.
         pygame.display.flip()
+        self.flaggo = False
 
     def handle_events(self):
         "Override for custom event handling."

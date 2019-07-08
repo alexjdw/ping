@@ -1,7 +1,11 @@
 '''A home for uncompiled strings of shaders.'''
 from importlib import import_module
 from .vao import VAO
-from OpenGL.GL import shaders, GL_VERTEX_SHADER, GL_FRAGMENT_SHADER
+from OpenGL.GL import shaders,\
+    GL_VERTEX_SHADER,\
+    GL_FRAGMENT_SHADER,\
+    glGetUniformLocation,\
+    glGetAttribLocation
 from contextlib import contextmanager
 from collections import namedtuple
 import os
@@ -121,6 +125,28 @@ class Pipeline:
         self._models = []
         self._program = shaders.compileProgram(self.vert.shader, self.frag.shader)
 
+        # get uniform locations
+        self.uniforms = {}
+        self.ins = {}
+        for var in self.vert.vars:
+            if var.cls == "uniform":
+                loc = glGetUniformLocation(self._program, var.name)
+                if loc == -1:
+                    print("WARNING: Uniform " + var.name + " returned -1; this indicates that the var is not being used by the program.")
+                else:
+                    self.uniforms[var.name] = (loc, var.type)
+            if var.cls == "in" or var.cls == "inout" or var.cls == "varying":
+                loc = glGetAttribLocation(self._program, var.name)
+                if loc == -1:
+                    print("WARNING: Attribute " + var.name + " returned -1; this indicates that the var is not being used by the program.")
+                self.ins[var.name] = (loc, var.type)
+
+        for var in self.frag.vars:
+            if var.cls == "uniform" and var.name not in self.uniforms:
+                loc = glGetUniformLocation(self._program, var.name)
+                if loc == -1:
+                    print("WARNING: Attribute " + var.name + " location returned -1; this indicates that the var is not being used by the program.")
+                self.uniforms[var.name] = (loc, var.type)
 
     def add_model(self, model):
         "Add a Shape3D model to be rendered with this shader pair."
@@ -130,7 +156,6 @@ class Pipeline:
             self.vert.VAO.add_VBO(model.render_data[0])
         finally:
             self.vert.VAO.unbind()
-
 
     @contextmanager
     def rendering(self):
