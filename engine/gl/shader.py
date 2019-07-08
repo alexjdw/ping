@@ -1,5 +1,6 @@
 '''A home for uncompiled strings of shaders.'''
 from importlib import import_module
+from .vao import VAO
 from OpenGL.GL import shaders, GL_VERTEX_SHADER, GL_FRAGMENT_SHADER
 from contextlib import contextmanager
 from collections import namedtuple
@@ -18,7 +19,7 @@ class Shader:
     https://gamedev.stackexchange.com/questions/29672/in-out-keywords-in-glsl
     https://gamedev.stackexchange.com/questions/29672/in-out-keywords-in-glsl
     '''
-    # A dict to avoid recompiling of the same shader.
+    # Store compiled shaders in a dict to avoid recompiling of the same shader.
     compiledShaders = {}
 
     def __init__(self, file, shadertype, abspath=False):
@@ -27,7 +28,8 @@ class Shader:
           absolute path.
         :param shadertype: GL_VERTEX_SHADER or GL_FRAGMENT_SHADER
         :abspath: Lets the shader know the file path you're passing in is
-          an absolute path.'''
+          an absolute path.
+        '''
         if file is None:
             return  # allow alternate constructors
         if file in Shader.compiledShaders:
@@ -35,6 +37,7 @@ class Shader:
             # and remove the models.
             other = Shader.compiledShaders[file]
             self.__dict__ = other.__dict__.copy()
+            # TODO - avoid using copy here.
             self.models = []
             return
 
@@ -75,19 +78,42 @@ class Shader:
 
     def parse(self):
         self.vars = []
+        self.locations = {}
         vartypes = {'in', 'out', 'inout', 'uniform', 'attribute', 'varying'}
         for line in self._code.split('\n'):
+            line = line.strip()
             words = line.split()
+            is_layout = False
             if not len(words):
                 continue
+            if words[0] == 'layout':
+                # example: layout (location=0) in vec4 potato;
+                layout, vars = line.split(')')
+                words = vars.split()
+                if 'location' in layout:
+                    loc = int(layout.split('=')[1].strip())
+                    is_layout = True
+
             if words[0] in vartypes:
-                if words[1] in ('highp', 'mediump', 'lowp'):
-                    # Skip the precision
-                    self.vars.append(
-                        ShaderVar(words[0], words[2], words[3].rstrip(';')))
+                if is_layout:
+                    if words[1] in ('highp', 'mediump', 'lowp'):
+                        # Skip the precision
+                        self.locations[loc] =\
+                            ShaderVar(words[0], words[2], words[3].rstrip(';'))
+                    else:
+                        self.locations[loc] =\
+                            ShaderVar(words[0], words[1], words[2].rstrip(';'))
                 else:
-                    self.vars.append(
-                        ShaderVar(words[0], words[1], words[2].rstrip(';')))
+                    if words[1] in ('highp', 'mediump', 'lowp'):
+                        # Skip the precision
+                        self.vars.append(
+                            ShaderVar(words[0], words[2], words[3].rstrip(';')))
+                    else:
+                        self.vars.append(
+                            ShaderVar(words[0], words[1], words[2].rstrip(';')))
+        if len(self.locations.keys()):
+            print(self.locations)
+            self.VAO = VAO(self.locations)
 
 
 class Pipeline:

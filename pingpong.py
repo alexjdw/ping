@@ -1,16 +1,15 @@
 import pygame
 import numpy as np
 from OpenGL.GL import *
-from OpenGL.GL import glRotatef
 from OpenGL.GLU import *
 # from pingpong.game_objects.testobjs import player, table, net, ball
-from gl.drawable import cube, Point3D
-from gl.shader import Shader, Pipeline
-from gl.camera import Camera
-from gl.obj_loader import OBJ_to_shape
-from gl.constants import WIDTH, HEIGHT
-from gameloop.VBOGameLoop import VBOGameLoop
-from gameloop.GameLoop import GameLoop
+from engine.gl.drawable import cube, Point3D
+from engine.gl.shader import Shader, Pipeline
+from engine.gl.camera import Camera
+from engine.gl.obj_loader import OBJ_to_shape
+from engine.gl.constants import WIDTH, HEIGHT
+from engine.gameloop.VBOGameLoop import VBOGameLoop
+from engine.gameloop.GameLoop import GameLoop
 
 # Game Variables
 GAME_PACE_SCALAR = 1.
@@ -21,16 +20,17 @@ gameDisplay = pygame.display.set_mode((WIDTH, HEIGHT), pygame.DOUBLEBUF|pygame.O
 pygame.display.set_caption('Ping Pong')
 clock = pygame.time.Clock()
 
-model = r'C:\Users\Alex\Documents\pingpong\engine\gl\assets\pingponggame\PingPongPaddle.obj'
+model = r'C:\Users\Alex\Documents\pingpong\assets\pingponggame\PingPongPaddle.obj'
 c = cube(.5, Point3D(-.25, -.25, .25))
 drawables = {OBJ_to_shape(model), c}
 
 
-vert = Shader('vertex_default', GL_VERTEX_SHADER)
-frag = Shader('fragment_default', GL_FRAGMENT_SHADER)
+vert = Shader('litvert', GL_VERTEX_SHADER)
+frag = Shader('litfrag', GL_FRAGMENT_SHADER)
 pipeline = Pipeline(vert, frag)
+pipeline.vao = ''
 camera = Camera()
-camera.move(0, 0, 0)
+camera.move(0, 0, -2)
 
 for d in drawables:
     pipeline.add_model(d)

@@ -20,7 +20,7 @@ class Camera(ReprMixin):
 
     def move(self, x, y, z):
         'Moves the camera (x, y, z) units from its current position.'
-        self._position = self._position + (x, y, z)
+        self._position = self._position + (x, y, -1 * z)
         self._transm = None
 
     def relative_move(self, right, up, forward):
@@ -108,7 +108,7 @@ class Camera(ReprMixin):
         if self._matrix is None:
             if self._transm is None:
                 self._transm = np.identity(4)
-                self._transm[0][3], self._transm[1][3], self._transm[2][3] = self._position
+                self._transm[3][0], self._transm[3][1], self._transm[3][2] = self._position
             if self._zoomm is None:
                 self._zoomm = np.identity(4)
                 self._zoomm[0][0] = self._zoom
@@ -116,13 +116,12 @@ class Camera(ReprMixin):
                 self._zoomm[2][2] = self._zoom
             if self._rotm is None:
                 self._rotm = transformations.euler_matrix(
-                                self._roll,
+                                -1 * self._roll,
                                 -1 * self._yaw,
                                 -1 * self._pitch,
                                 'szyx')
 
             self._matrix = np.matmul(np.matmul(self._transm, self._rotm),
                                      self._zoomm)
-            print(self._matrix)
 
         return self._matrix

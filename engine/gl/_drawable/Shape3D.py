@@ -37,9 +37,9 @@ class Shape3D(ReprMixin):
         self.scale = scale if scale else np.identity(4, 'f')
         self._matrix = None
         self.mode = mode
+        self._VAO = None
         self._VBO_is_compiled = False
         self._VBO_contexts = []
-        self._clientstates = []
 
     def GLDraw(self):
         "Draws the shape. Old-style drawing mechanism. Deprecated."
@@ -93,45 +93,6 @@ class Shape3D(ReprMixin):
         if not self._VBO_is_compiled:
             self.compile_VBO()
         return (self._VBO, self.mode)
-
-    def rendering(self):
-        "Set up the rendering environment."
-        byte_offset = 0  # adjusts the pointer by n bytes
-        self._clientstates = []
-        if 'v' in self._VBO_format:
-            glEnableClientState(GL_VERTEX_ARRAY)
-            glVertexPointer(3, GL_FLOAT, 24, self._VBO)
-            byte_offset += 12
-            self._clientstates.append(GL_VERTEX_ARRAY)
-
-        if 't' in self._VBO_format:
-            glEnableClientState(GL_TEXTURE_COORD_ARRAY)
-            glTexCoordPointer(3, GL_FLOAT, 24, self._VBO + byte_offset)
-            byte_offset += 12
-            self._clientstates.append(GL_TEXTURE_COORD_ARRAY)
-
-        if 'n' in self._VBO_format:
-            glEnableClientState(GL_NORMAL_ARRAY)
-            glNormalPointer(3, GL_FLOAT, 24, self._VBO + byte_offset)
-            byte_offset += 12
-            self._clientstates.append(GL_NORMAL_ARRAY)
-
-        if 'c' in self._VBO_format:
-            glEnableClientState(GL_COLOR_ARRAY)
-            glColorPointer(3, GL_FLOAT, 24, self._VBO + byte_offset)
-            byte_offset += 12
-            self._clientstates.append(GL_COLOR_ARRAY)
-
-    def stop_rendering(self):
-        "Tear down the rendering environment."
-        for state in self._clientstates:
-            glDisableClientState(state)
-        self._clientstates = []
-
-    def destroy_buffers(self):
-        if hasattr(self, '_VBO'):
-            del self._VBO
-        self.stop_rendering()
 
     def move(self, x, y, z):
         "Moves the shape around the world."

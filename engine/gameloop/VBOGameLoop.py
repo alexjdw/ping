@@ -19,6 +19,7 @@ class VBOGameLoop(GameLoop):
         self.cameras = cameras if cameras else []
         self.view = cameras[0] if len(cameras) else None
         self.lights = lights if lights else []
+        self.ambient_light = 0
         self.filters = filters if filters else []
 
         self._event_handlers = {}
@@ -27,16 +28,20 @@ class VBOGameLoop(GameLoop):
     def GLsetup(self, display):
         "Set up OpenGL."
         glLoadIdentity()
+        # self.perspective = np.array(
+        #     [[r, 0, 0, 0],
+        #     [0, 1, 0, 0],
+        #     [0, 0, zFar/(zFar - zNear), 1],
+        #     [0, 0, -zNear * zFar / (zFar - zNear), 0]]
+        # )
 
         # Set up the drawing field.
         glEnable(GL_POLYGON_SMOOTH)
         glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST)
         glEnable(GL_BLEND)
         glEnable(GL_DEPTH_TEST)
-
         # Drawing mode.
-        glMatrixMode(GL_MODELVIEW)
-        # glClearColor(.2, .2, .2, 1)  # background color
+
 
     def begin(self, display, clock, clock_rate):
         "Begins the game loop on the given display."
@@ -80,10 +85,10 @@ class VBOGameLoop(GameLoop):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         for shader in self.shaders:
             with shader.rendering():
+                # Load shader's format
+                shader.vao.bind()
                 # Draw models with shader
                 for m in shader.models:
-                    glLoadMatrixf(
-                        np.matmul(m.transform_matrix, self.view.matrix))
                     vbo, mode = m.render_data
                     try:
                         vbo.bind()

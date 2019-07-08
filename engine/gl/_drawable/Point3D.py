@@ -18,7 +18,7 @@ class Point3D(ReprMixin):
         self.normal = normal
         self.color = color
         if self.color is None and RANDO_COLORS:
-            self.color = (random() / 3 + .6, random() / 3 + .6, random() / 3 + .6)
+            self.color = (random() / 10 + .7, random() / 10 + .7, random() / 10 + .7)
         self._VBO_is_compiled = False
 
     def GLDraw(self):
