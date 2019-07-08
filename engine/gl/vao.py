@@ -11,7 +11,7 @@ from OpenGL.GL import shaders,\
 from OpenGL.raw.GL.ARB.vertex_array_object import glGenVertexArrays, \
                                                   glBindVertexArray
 
-VptrArgs = namedtuple("index", "size", "typ", "normalized", "stride", "pointer")
+VptrArgs = namedtuple("VptrArgs", "index size typ normalized stride pointer")
 
 class VAO(ReprMixin):
     def __init__(self, locations):

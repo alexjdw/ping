@@ -38,7 +38,6 @@ class Shader:
             other = Shader.compiledShaders[file]
             self.__dict__ = other.__dict__.copy()
             # TODO - avoid using copy here.
-            self.models = []
             return
 
         if shadertype not in (GL_VERTEX_SHADER, GL_FRAGMENT_SHADER):
@@ -65,7 +64,7 @@ class Shader:
     def from_raw_code(cls, code, shadertype):
         '''
         Alternate constructor that allows you to pass in raw C code. Useful
-        for testing out different shaders.
+        for quickly testing out different shaders.
         '''
         if shadertype not in (GL_VERTEX_SHADER, GL_FRAGMENT_SHADER):
             raise TypeError("Type should be GL_VERTEX_SHADER or GL_FRAGMENT_SHADER")
@@ -78,7 +77,7 @@ class Shader:
 
     def parse(self):
         self.vars = []
-        self.locations = {}
+        locations = {}
         vartypes = {'in', 'out', 'inout', 'uniform', 'attribute', 'varying'}
         for line in self._code.split('\n'):
             line = line.strip()
@@ -98,10 +97,10 @@ class Shader:
                 if is_layout:
                     if words[1] in ('highp', 'mediump', 'lowp'):
                         # Skip the precision
-                        self.locations[loc] =\
+                        locations[loc] =\
                             ShaderVar(words[0], words[2], words[3].rstrip(';'))
                     else:
-                        self.locations[loc] =\
+                        locations[loc] =\
                             ShaderVar(words[0], words[1], words[2].rstrip(';'))
                 else:
                     if words[1] in ('highp', 'mediump', 'lowp'):
@@ -111,24 +110,32 @@ class Shader:
                     else:
                         self.vars.append(
                             ShaderVar(words[0], words[1], words[2].rstrip(';')))
-        if len(self.locations.keys()):
-            print(self.locations)
-            self.VAO = VAO(self.locations)
+        if len(locations.keys()) and self.shadertype == GL_VERTEX_SHADER:
+            self.VAO = VAO(locations)
 
 
 class Pipeline:
     def __init__(self, vertex_shader, fragment_shader):
         self.vert = vertex_shader
         self.frag = fragment_shader
-        self.models = []
+        self._models = []
         self._program = shaders.compileProgram(self.vert.shader, self.frag.shader)
+
 
     def add_model(self, model):
         "Add a Shape3D model to be rendered with this shader pair."
-        self.models.append(model)
+        self._models.append(model)
+        try:
+            self.vert.VAO.bind()
+            self.vert.VAO.add_VBO(model.render_data[0])
+        finally:
+            self.vert.VAO.unbind()
+
 
     @contextmanager
     def rendering(self):
         shaders.glUseProgram(self._program)
+        self.vert.VAO.bind()
         yield
+        self.vert.VAO.unbind()
         shaders.glUseProgram(0)

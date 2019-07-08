@@ -134,10 +134,6 @@ class Shape3D(ReprMixin):
     rotate = property(get_rotate, set_rotate)
     scale = property(get_scale, set_scale)
 
-    def __del__(self):
-        self.destroy_buffers()
-
-
 # Alternate constructors
 def box(height, width, depth, first_point, color=None):
     'Constructs a rectangular box.'

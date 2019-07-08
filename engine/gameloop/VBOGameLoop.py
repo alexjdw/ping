@@ -3,7 +3,7 @@ from OpenGL.GL import *
 from OpenGL.GL import glTranslate, glRotate, glLoadIdentity,\
     glClearColor, glClear, glDisableClientState, glEnableClientState,\
     glVertexPointerf, glDrawArrays, glGetError, shaders,\
-    glScale,\
+    glScale, glEnable, glHint,\
     GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT, GL_VERTEX_ARRAY
 from OpenGL.GLU import *
 from OpenGL.GLU import gluPerspective
@@ -27,13 +27,21 @@ class VBOGameLoop(GameLoop):
 
     def GLsetup(self, display):
         "Set up OpenGL."
-        glLoadIdentity()
-        # self.perspective = np.array(
-        #     [[r, 0, 0, 0],
-        #     [0, 1, 0, 0],
-        #     [0, 0, zFar/(zFar - zNear), 1],
-        #     [0, 0, -zNear * zFar / (zFar - zNear), 0]]
-        # )
+        near = .1
+        far = 100.
+        fov = np.deg2rad(45)
+        aspect = display.get_width() / display.get_height()
+        r = np.tan(fov/2) * near
+        Sx = (2 * near)/(r * aspect + r * aspect)
+        Sy = near/r
+        Sz = -1 * (far + near)/(far - near)
+        Pz = -1 * (2 * far * near)/(far - near)
+        self.perspective = np.array(
+            [[Sx, 0, 0, 0],
+             [0, Sy, 0, 0],
+             [0, 0, Sz, Pz],
+             [0, 0, -1, 0]]
+        )
 
         # Set up the drawing field.
         glEnable(GL_POLYGON_SMOOTH)
@@ -85,18 +93,14 @@ class VBOGameLoop(GameLoop):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         for shader in self.shaders:
             with shader.rendering():
-                # Load shader's format
-                shader.vao.bind()
                 # Draw models with shader
-                for m in shader.models:
+                for m in shader._models:
                     vbo, mode = m.render_data
                     try:
                         vbo.bind()
-                        m.rendering()
                         glDrawArrays(mode, 0, len(vbo))
                     finally:
                         vbo.unbind()
-                        m.stop_rendering()
         glLoadIdentity()
         # TODO Apply postprocessing filters
 
@@ -121,7 +125,7 @@ class VBOGameLoop(GameLoop):
         Vertex Buffer Object (VBO).
         '''
         for shader in self.shaders:
-            for model in shader.models:
+            for model in shader._models:
                 model.compile_VBO()
 
     def add_lighting(self):
