@@ -1,4 +1,6 @@
-import pygame, numpy as np
+import pygame
+import numpy as np
+import glm
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GL import shaders
@@ -32,9 +34,9 @@ class Shape3D(ReprMixin):
                 for p in s.points:
                     if p.color is None:
                         p.color = color
-        self.offset = offset if offset else np.identity(4, 'f')
-        self.rotate = rotate if rotate else np.identity(4, 'f')
-        self.scale = scale if scale else np.identity(4, 'f')
+        self.offset = offset if offset else glm.mat4()
+        self.rotate = rotate if rotate else glm.mat4()
+        self.scale = scale if scale else glm.mat4()
         self._matrix = None
         self.mode = mode
         self._VAO = None
@@ -73,7 +75,7 @@ class Shape3D(ReprMixin):
         self._VBO_is_compiled = True
 
     @property
-    def transform_matrix(self):
+    def model_matrix(self):
         '''
         The transform matrix is a way to transform of an object
         at draw time without overwriting all of its members.
@@ -84,8 +86,7 @@ class Shape3D(ReprMixin):
         avoids repetitive calculations for objects that don't move.
         '''
         if self._matrix is None:
-            self._matrix = np.matmul(np.matmul(self.offset, self.rotate),
-                                     self.scale)
+            self._matrix = self.offset * self.rotate * self.scale
         return self._matrix
 
     @property
@@ -96,11 +97,9 @@ class Shape3D(ReprMixin):
 
     def move(self, x, y, z):
         "Moves the shape around the world."
-        self.offset = self.offset + np.array(
-                [[1, 0, 0, 0],
-                 [0, 1, 0, 0],
-                 [0, 0, 1, 0],
-                 [x, y, z, 1]])
+        self.offset[3][0] = self.offset[3][0] + x
+        self.offset[3][1] = self.offset[3][1] + y
+        self.offset[3][2] = self.offset[3][2] + z
 
     def move_relative_to_camera(self, right, up, back):
         "Moves the shape relative to the camera position."
@@ -134,21 +133,22 @@ class Shape3D(ReprMixin):
     rotate = property(get_rotate, set_rotate)
     scale = property(get_scale, set_scale)
 
+
 # Alternate constructors
 def box(height, width, depth, first_point, color=None):
     'Constructs a rectangular box.'
-    h = np.array([height, 0, 0])
-    w = np.array([0, width, 0])
-    d = np.array([0, 0, depth])
-    p1 = np.array(first_point.vertex)
-    points = [np.array(p1),
-              np.array(p1 + w),
-              np.array(p1 + h),
-              np.array(p1 + w + h),
-              np.array(p1 + d),
-              np.array(p1 + d + w),
-              np.array(p1 + d + h),
-              np.array(p1 + d + h + w)]
+    h = glm.vec3(height, 0, 0)
+    w = glm.vec3(0, width, 0)
+    d = glm.vec3(0, 0, depth)
+    p1 = glm.vec3(first_point.vertex)
+    points = [p1,
+              p1 + w,
+              p1 + h,
+              p1 + w + h,
+              p1 + d,
+              p1 + d + w,
+              p1 + d + h,
+              p1 + d + h + w]
 
     for index, point in enumerate(points):
         points[index] = Point3D(point[0], point[1], point[2], color)

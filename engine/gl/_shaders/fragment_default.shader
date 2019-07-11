@@ -1,4 +1,6 @@
-varying vec4 vertex_color;
+in vec3 vertex;
+in vec3 color;
+
 void main() {
-    gl_FragColor = vertex_color;
+    gl_FragColor = vec4(color.xyz, 1.);
 }

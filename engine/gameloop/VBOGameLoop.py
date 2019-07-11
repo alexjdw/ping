@@ -1,4 +1,5 @@
 import pygame, numpy as np
+import glm
 from OpenGL.GL import *
 from OpenGL.GL import glTranslate, glRotate, glLoadIdentity,\
     glClearColor, glClear, glDisableClientState, glEnableClientState,\
@@ -27,22 +28,7 @@ class VBOGameLoop(GameLoop):
 
     def GLsetup(self, display):
         "Set up OpenGL."
-        near = .1
-        far = 100.
-        fov = np.deg2rad(45)
-        aspect = display.get_width() / display.get_height()
-        r = np.tan(fov/2) * near
-        Sx = (2 * near)/(r * aspect + r * aspect)
-        Sy = near/r
-        Sz = -1 * (far + near)/(far - near)
-        Pz = -1 * (2 * far * near)/(far - near)
-        self.projection = np.array(
-            [[Sx, 0, 0, 0],
-             [0, Sy, 0, 0],
-             [0, 0, Sz, Pz],
-             [0, 0, -1, 0]]
-        )
-
+        self.projection = glm.perspective(45, float(display.get_width()) / display.get_height(), .02, 5)
         # Set up the drawing field.
         glEnable(GL_POLYGON_SMOOTH)
         glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST)
@@ -91,7 +77,7 @@ class VBOGameLoop(GameLoop):
     def render(self):
         "Override for custom drawing."
         # Clear the screen buffer
-        glClearColor(.5,.5,.5,0)
+        glClearColor(.5, .5, .5, 0)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         for shader in self.shaders:
             with shader.rendering():
@@ -100,12 +86,12 @@ class VBOGameLoop(GameLoop):
                     shader.uniforms['view'][0],
                     1,
                     GL_FALSE,
-                    self.view.matrix)
+                    np.array(self.view.matrix))
                 glUniformMatrix4fv(
                     shader.uniforms['projection'][0],
                     1,
                     GL_FALSE,
-                    self.projection
+                    np.array(self.projection)
                 )
                 # Draw models with shader
                 for m in shader._models:
@@ -116,21 +102,41 @@ class VBOGameLoop(GameLoop):
                             shader.uniforms['model'][0],
                             1,
                             GL_FALSE,
-                            m.transform_matrix
+                            np.array(m.model_matrix)
                         )
+                        if self.flaggo:
+                            # print('vbo data')
+                            # print(vbo.data)
+                            # print('model')
+                            # print(m.model_matrix)
+                            # print('projection')
+                            # print(self.projection)
+                            # print('view')
+                            # print(self.view.matrix)
+                            # print('mutliplied:')
+                            # print(self.projection * self.view.matrix * m.model_matrix)
+                            # print('multiplied with vbo data:')
+                            # for vert in vbo.data:
+                            #     print(self.projection * self.view.matrix * m.model_matrix * 
+                            #             glm.vec4(vert[0], vert[1], vert[2], 1.0))
+                            for i in range(8):
+                                print("Enabled: ", glGetVertexAttribIiv(i, GL_VERTEX_ATTRIB_ARRAY_ENABLED))
+                                print("Size: ", glGetVertexAttribIiv(i, GL_VERTEX_ATTRIB_ARRAY_SIZE))
+                                print("Type: ", glGetVertexAttribIiv(i, GL_VERTEX_ATTRIB_ARRAY_TYPE))
+                                print("Stride: ", glGetVertexAttribIiv(i, GL_VERTEX_ATTRIB_ARRAY_STRIDE))
+                                print("Buffer binding: ", glGetVertexAttribIiv(i, GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING))
+                                print("Ptr:", glGetVertexAttribPointerv(i, GL_VERTEX_ATTRIB_ARRAY_POINTER))
+                                print('//')
+
+                            self.flaggo = False
                         vbo.bind()  # Binds the VBO.
                         glDrawArrays(mode, 0, len(vbo))
-                        if self.flaggo:
-                            self.flaggo = False
                     finally:
                         vbo.unbind()
-            
-        glLoadIdentity()
         # TODO Apply postprocessing filters
 
         # Put it on the screen.
         pygame.display.flip()
-        self.flaggo = False
 
     def handle_events(self):
         "Override for custom event handling."

@@ -1,5 +1,6 @@
 import pygame
 import numpy as np
+import glm
 from OpenGL.GL import *
 from OpenGL.GLU import *
 # from pingpong.game_objects.testobjs import player, table, net, ball
@@ -22,11 +23,11 @@ clock = pygame.time.Clock()
 
 model = r'C:\Users\Alex\Documents\pingpong\assets\pingponggame\PingPongPaddle.obj'
 c = cube(.5, Point3D(-.25, -.25, .25))
-drawables = {OBJ_to_shape(model), c}
+drawables = {c}
 
 
 vert = Shader('litvert', GL_VERTEX_SHADER)
-frag = Shader('litfrag', GL_FRAGMENT_SHADER)
+frag = Shader('fragment_default', GL_FRAGMENT_SHADER)
 pipeline = Pipeline(vert, frag)
 pipeline.vao = ''
 camera = Camera()
@@ -40,7 +41,7 @@ with VBOGameLoop([pipeline], cameras=[camera]) as loop:
         if not pygame.mouse.get_pressed()[0]:
             return
 
-        loop.state['pos'].append(np.array(event.pos))
+        loop.state['pos'].append(glm.vec2(event.pos))
 
         if len(loop.state['pos']) > 25:
             pos = loop.state['pos'].popleft()
@@ -50,41 +51,29 @@ with VBOGameLoop([pipeline], cameras=[camera]) as loop:
         loop.view.rotate(pos[0], pos[1], 0, degrees=True)
 
     def handle_kbd(loop, event):
+        mv = .1
+        mmv = -.1
         if event.key == pygame.K_LEFT:
             for d in drawables:
-                offset = np.zeros((4, 4))
-                offset[3][0] = .5
-                d.offset = d.offset + offset
+                d.offset = glm.translate(d.offset, glm.vec3(mv, 0., 0.))
         if event.key == pygame.K_RIGHT:
             for d in drawables:
-                offset = np.zeros((4, 4))
-                offset[3][0] = -.5
-                d.offset = d.offset + offset
+                d.offset = glm.translate(d.offset, glm.vec3(mmv, 0., 0.))
         if event.key == pygame.K_DOWN:
             for d in drawables:
-                offset = np.zeros((4, 4))
-                offset[3][1] = -.5
-                d.offset = d.offset + offset
+                d.offset = glm.translate(d.offset, glm.vec3(0., mv, 0.))
         if event.key == pygame.K_UP:
             for d in drawables:
-                offset = np.zeros((4, 4))
-                offset[3][1] = .5
-                d.offset = d.offset + offset
+                d.offset = glm.translate(d.offset, glm.vec3(0., mmv, 0.))
         if event.key == pygame.K_z:
             for d in drawables:
-                offset = np.zeros((4, 4))
-                offset[3][2] = -.5
-                d.offset = d.offset + offset
+                d.offset = glm.translate(d.offset, glm.vec3(0., 0., mv))
         if event.key == pygame.K_x:
             for d in drawables:
-                offset = np.zeros((4, 4))
-                offset[3][2] = .5
-                d.offset = d.offset + offset
+                d.offset = glm.translate(d.offset, glm.vec3(0., 0., mmv))
 
         if event.key == pygame.K_SPACE:
-            print('c ', c.transform_matrix)
-            print('v ', loop.view.matrix)
-            print('* ', np.matmul(c.transform_matrix, loop.view.matrix))
+            pass
 
 
     from collections import deque

@@ -19,9 +19,14 @@ class VAO(ReprMixin):
         self.locations = locations
         self.VBOs = []
         self.vptr_args = []
+
+        # VAO index or 'name' in OpenGL
         self._index = GLuint(0)
         glGenVertexArrays(1, self._index)
 
+        # Plan: Store the arguments for a glVertex call,
+        # then, when a buffer is added, activate the VBO
+        # and call glVertexAttribPointer with stored arguments.
         offset = 0
         for loc, attribs in self.locations.items():
             if 'vec' in attribs.type:
@@ -33,8 +38,13 @@ class VAO(ReprMixin):
             else:
                 raise TypeError("Unsupported type for VAO: " + attribs.type)
             self.vptr_args.append(
-                VptrArgs(loc, size, GL_FLOAT, GL_FALSE, 0, ctypes.c_void_p(offset))
-            )
+                VptrArgs(loc,
+                         size,
+                         GL_FLOAT,
+                         GL_FALSE,
+                         6 * sizeof(ctypes.c_float),
+                         ctypes.c_void_p(offset)
+                         ))
             offset += size * sizeof(ctypes.c_float)
 
     def add_VBO(self, VBO):
@@ -45,7 +55,8 @@ class VAO(ReprMixin):
         try:
             VBO.bind()
             for args in self.vptr_args:
-                glEnableVertexAttribArray(args[0])
+                print(args)
+                glEnableVertexAttribArray(args.index)
                 glVertexAttribPointer(*args)
         finally:
             VBO.unbind()
@@ -57,6 +68,7 @@ class VAO(ReprMixin):
     def unbind(self):
         glBindVertexArray(0)
         self._bound = False
+
 
 class VAOError(Exception):
     pass

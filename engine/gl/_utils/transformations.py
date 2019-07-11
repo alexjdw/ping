@@ -216,7 +216,7 @@ __docformat__ = 'restructuredtext en'
 import math
 
 import numpy
-
+import glm
 
 def identity_matrix():
     """Return 4x4 identity/unit matrix.
@@ -1099,7 +1099,7 @@ def euler_matrix(ai, aj, ak, axes='sxyz'):
     cc, cs = ci*ck, ci*sk
     sc, ss = si*ck, si*sk
 
-    M = numpy.identity(4)
+    M = glm.mat4()
     if repetition:
         M[i, i] = cj
         M[i, j] = sj*si
