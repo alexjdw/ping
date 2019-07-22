@@ -1,6 +1,7 @@
 '''A home for uncompiled strings of shaders.'''
 from importlib import import_module
 from .vao import VAO
+from OpenGL.GL import *
 from OpenGL.GL import shaders,\
     GL_VERTEX_SHADER,\
     GL_FRAGMENT_SHADER,\
@@ -11,6 +12,15 @@ from collections import namedtuple
 import os
 
 ShaderVar = namedtuple('ShaderVar', 'cls type name')
+# UNI_FUNCS = {
+#     "mat4": glUniformMatrix4fv,
+#     "mat3": glUniformMatrix3fv,
+#     "mat2": glUniformMatrix2fv,
+#     "vec4": glUniform4fv,
+#     "vec3": glUniform3fv,
+#     "vec2": glUniform2fv,
+#     "float": glUniform1f
+# }
 
 
 class Shader:
@@ -75,6 +85,7 @@ class Shader:
         self = cls(None, shadertype)
         self.file = None
         self._code = code
+        self.VAO_locs = None
         self.shader = shaders.compileShader(self._code, shadertype)
         self.parse()
         return self
@@ -115,15 +126,16 @@ class Shader:
                         self.vars.append(
                             ShaderVar(words[0], words[1], words[2].rstrip(';')))
         if len(locations.keys()) and self.shadertype == GL_VERTEX_SHADER:
-            self.VAO = VAO(locations)
+            self.VAO_locations = locations
 
 
 class Pipeline:
     def __init__(self, vertex_shader, fragment_shader):
         self.vert = vertex_shader
         self.frag = fragment_shader
-        self._models = []
+        self._models_and_VAOs = []
         self._program = shaders.compileProgram(self.vert.shader, self.frag.shader)
+        self.VAOs = []
 
         # get uniform locations
         self.uniforms = {}
@@ -146,21 +158,22 @@ class Pipeline:
                 loc = glGetUniformLocation(self._program, var.name)
                 if loc == -1:
                     print("WARNING: Attribute " + var.name + " location returned -1; this indicates that the var is not being used by the program.")
-                self.uniforms[var.name] = (loc, var.type)
+                self.uniforms[var.name] = [loc, var.type]
 
     def add_model(self, model):
         "Add a Shape3D model to be rendered with this shader pair."
-        self._models.append(model)
         try:
-            self.vert.VAO.bind()
-            self.vert.VAO.add_VBO(model.render_data[0])
+            newVAO = VAO(self.vert.VAO_locations)
+            newVAO.bind()
+            newVAO.add_VBO(model.render_data[0])
+        except Exception as e:
+            print(e)
         finally:
-            self.vert.VAO.unbind()
+            newVAO.unbind()
+        self._models_and_VAOs.append((model, newVAO))
 
     @contextmanager
     def rendering(self):
         shaders.glUseProgram(self._program)
-        self.vert.VAO.bind()
         yield
-        self.vert.VAO.unbind()
         shaders.glUseProgram(0)

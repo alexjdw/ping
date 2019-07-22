@@ -133,6 +133,64 @@ class Shape3D(ReprMixin):
     rotate = property(get_rotate, set_rotate)
     scale = property(get_scale, set_scale)
 
+    def gen_normals(self):
+        """Generates a normal vector for each of the attached
+        points if one hasn't been generated already."""
+        pointd = {}
+        for shape in self.shapes:
+            count = 0
+            verts = []
+            for point in shape.points:
+                if count < 3:
+                    verts.append(point.vertex)
+                    count += 1
+                if point not in pointd:
+                    pointd[point] = [shape.normal]
+                else:
+                    pointd[point].append(shape.normal)
+            if count < 3:
+                raise ValueError("Unable to calculate normal for shape with < 3 verticies. (It's not a viable surface)")
+            shape.normal = glm.normalize(
+                glm.cross(
+                    verts[1] - verts[0],
+                    verts[2] - verts[0]
+                    ))
+        for point, norms in pointd.items():
+            if point.normal is None:
+                point.normal = sum(verts) / len(verts)
+    
+    def center_and_normalize(self, scale=1.0):
+        '''
+        Scales down the object to fit in world space, 
+        defaulting to a box from (1, 1, 1) to
+        (-1, -1, -1)
+
+        :param scale: Applies a scalar to the final result.
+        '''
+        count = 0
+        center = glm.vec3(0., 0., 0.)
+        farthest = 0.
+        for shape in self.shapes:
+            for point in shape.points:
+                count += 1
+                center += point.vertex
+        center = center / float(count)
+
+        # center the object
+        for shape in self.shapes:
+            for point in shape.points:
+                point.vertex = point.vertex - center
+                farthest = max([glm.sqrt(point.vertex.x ** 2 +
+                                         point.vertex.y ** 2 +
+                                         point.vertex.z ** 2),
+                                farthest])
+        # scale the objects verticies in relation to the furthest point from
+        # the center
+        scale = scale / farthest
+        for shape in self.shapes:
+            for point in shape.points:
+                point.vertex = point.vertex * scale
+
 
 # Alternate constructors
 def box(height, width, depth, first_point, color=None):
@@ -172,3 +230,7 @@ def cube(length, first_point, color=None):
 
 def pyramid(base_len, base_wid, height, first_point, color=None):
     pass
+
+
+def sphere(radius, first_point, color=None):
+    return cube(radius * 2, first_point, color)

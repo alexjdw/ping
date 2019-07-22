@@ -11,7 +11,7 @@ class Rect2D(Shape2D):
     def __init__(self,
                  points,
                  texcoords=None,
-                 normals=None,
+                 normal=None,
                  color=None):
         if len(points) != 4:
             raise AttributeError(
@@ -26,5 +26,6 @@ class Rect2D(Shape2D):
             for point in self.points:
                 if point.color is None:
                     point.color = color
+        self.normal = normal
 
         self._VBO_is_compiled = False

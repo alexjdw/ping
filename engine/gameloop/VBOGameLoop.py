@@ -20,8 +20,10 @@ class VBOGameLoop(GameLoop):
         self.cameras = cameras if cameras else []
         self.view = cameras[0] if len(cameras) else None
         self.lights = lights if lights else []
-        self.ambient_light = 0
+        self.ambient_light = .7
+        self.ambient_light_color = np.array((1.0, 1.0, 1.0))
         self.filters = filters if filters else []
+        self.animators = []
 
         self._event_handlers = {}
         self.state = {}  # a dictionary for storing in-game variables.
@@ -34,8 +36,9 @@ class VBOGameLoop(GameLoop):
         glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST)
         glEnable(GL_BLEND)
         glEnable(GL_DEPTH_TEST)
-        # Drawing mode.
+        glClearColor(.5, .5, .5, 0.)
 
+        # Drawing mode.
 
     def begin(self, display, clock, clock_rate):
         "Begins the game loop on the given display."
@@ -70,6 +73,7 @@ class VBOGameLoop(GameLoop):
         self.flaggo = True
         while not self.exit_flag:
             self.handle_events()
+            self.animate()
             self.render()
             clock.tick(clock_rate)
         # end game loop
@@ -77,8 +81,8 @@ class VBOGameLoop(GameLoop):
     def render(self):
         "Override for custom drawing."
         # Clear the screen buffer
-        glClearColor(.5, .5, .5, 0)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+
         for shader in self.shaders:
             with shader.rendering():
                 # Set view and perspective
@@ -91,48 +95,26 @@ class VBOGameLoop(GameLoop):
                     shader.uniforms['projection'][0],
                     1,
                     GL_FALSE,
-                    np.array(self.projection)
-                )
-                # Draw models with shader
-                for m in shader._models:
-                    vbo, mode = m.render_data
-                    try:
-                        # Set the model's transform matrix uniform
-                        glUniformMatrix4fv(
-                            shader.uniforms['model'][0],
-                            1,
-                            GL_FALSE,
-                            np.array(m.model_matrix)
-                        )
-                        if self.flaggo:
-                            # print('vbo data')
-                            # print(vbo.data)
-                            # print('model')
-                            # print(m.model_matrix)
-                            # print('projection')
-                            # print(self.projection)
-                            # print('view')
-                            # print(self.view.matrix)
-                            # print('mutliplied:')
-                            # print(self.projection * self.view.matrix * m.model_matrix)
-                            # print('multiplied with vbo data:')
-                            # for vert in vbo.data:
-                            #     print(self.projection * self.view.matrix * m.model_matrix * 
-                            #             glm.vec4(vert[0], vert[1], vert[2], 1.0))
-                            for i in range(8):
-                                print("Enabled: ", glGetVertexAttribIiv(i, GL_VERTEX_ATTRIB_ARRAY_ENABLED))
-                                print("Size: ", glGetVertexAttribIiv(i, GL_VERTEX_ATTRIB_ARRAY_SIZE))
-                                print("Type: ", glGetVertexAttribIiv(i, GL_VERTEX_ATTRIB_ARRAY_TYPE))
-                                print("Stride: ", glGetVertexAttribIiv(i, GL_VERTEX_ATTRIB_ARRAY_STRIDE))
-                                print("Buffer binding: ", glGetVertexAttribIiv(i, GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING))
-                                print("Ptr:", glGetVertexAttribPointerv(i, GL_VERTEX_ATTRIB_ARRAY_POINTER))
-                                print('//')
+                    np.array(self.projection))
+                glUniform1f(shader.uniforms['light_ambient_weight'][0], self.ambient_light)
+                glUniform3f(shader.uniforms['light_ambient_color'][0], *self.ambient_light_color)
+                glUniform3f(shader.uniforms['light_pos'][0], *(2., 2., 2.))
+                glUniform3f(shader.uniforms['light_color'][0], *(1, 1, 1))
+                glUniform1f(shader.uniforms['light_glare'][0], 32.)
 
-                            self.flaggo = False
-                        vbo.bind()  # Binds the VBO.
-                        glDrawArrays(mode, 0, len(vbo))
-                    finally:
-                        vbo.unbind()
+                # Draw models with shader
+                for mdl, vao in shader._models_and_VAOs:
+                    # Set the model's transform matrix uniform
+                    vbo, mode = mdl.render_data
+                    glUniformMatrix4fv(
+                        shader.uniforms['model'][0],
+                        1,
+                        GL_FALSE,
+                        np.array(mdl.model_matrix))
+                    vao.bind()
+                    vbo.bind()  # Binds the VBO.
+                    glDrawArrays(mode, 0, len(vbo))
+                self.flaggo = False
         # TODO Apply postprocessing filters
 
         # Put it on the screen.
@@ -147,6 +129,10 @@ class VBOGameLoop(GameLoop):
             if event.type in self._event_handlers:
                 self._event_handlers[event.type](self, event)
 
+    def animate(self):
+        for ani in self.animators:
+            ani.step()
+
     def cleanup(self):
         pass
 
@@ -156,7 +142,7 @@ class VBOGameLoop(GameLoop):
         Vertex Buffer Object (VBO).
         '''
         for shader in self.shaders:
-            for model in shader._models:
+            for model, _ in shader._models_and_VAOs:
                 model.compile_VBO()
 
     def add_lighting(self):

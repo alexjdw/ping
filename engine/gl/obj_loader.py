@@ -136,7 +136,7 @@ def OBJ_to_shape(filename, swapyz=False, suppress_not_implemented=True):
 
     def addNormal(state, values):
         v = map(float, values[1:4])
-        if state.swapyz:
+        if state['swapyz']:
             v = v[0], v[2], v[1]
         state['normals'].append(v)
 
@@ -170,10 +170,9 @@ def OBJ_to_shape(filename, swapyz=False, suppress_not_implemented=True):
         state['shapes'].append(
             Shape2D(pcoords,
                     texcoords=tex_arg,
-                    normals=norms_arg,
+                    normal=norms_arg,
                     mode=GL_POLYGON
-                    )
-            )
+                    ))
 
     state = {
         'points': [],

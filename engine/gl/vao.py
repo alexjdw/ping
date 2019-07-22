@@ -28,6 +28,8 @@ class VAO(ReprMixin):
         # then, when a buffer is added, activate the VBO
         # and call glVertexAttribPointer with stored arguments.
         offset = 0
+        count = 0
+        stride = 0
         for loc, attribs in self.locations.items():
             if 'vec' in attribs.type:
                 size = int(attribs.type[3])
@@ -38,14 +40,17 @@ class VAO(ReprMixin):
             else:
                 raise TypeError("Unsupported type for VAO: " + attribs.type)
             self.vptr_args.append(
-                VptrArgs(loc,
-                         size,
-                         GL_FLOAT,
-                         GL_FALSE,
-                         6 * sizeof(ctypes.c_float),
-                         ctypes.c_void_p(offset)
-                         ))
+                [loc,
+                 size,
+                 GL_FLOAT,
+                 GL_FALSE,
+                 0,  # mulitply by stride later
+                 ctypes.c_void_p(offset)
+                 ])
             offset += size * sizeof(ctypes.c_float)
+            stride += size
+        for arg in self.vptr_args:
+            arg[4] = stride * sizeof(ctypes.c_float)
 
     def add_VBO(self, VBO):
         if not (self._bound):
@@ -55,8 +60,7 @@ class VAO(ReprMixin):
         try:
             VBO.bind()
             for args in self.vptr_args:
-                print(args)
-                glEnableVertexAttribArray(args.index)
+                glEnableVertexAttribArray(args[0])
                 glVertexAttribPointer(*args)
         finally:
             VBO.unbind()

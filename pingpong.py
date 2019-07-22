@@ -1,16 +1,22 @@
 import pygame
 import numpy as np
 import glm
+import os, sys
+
+sys.path.append(os.getcwd)
+
 from OpenGL.GL import *
 from OpenGL.GLU import *
-# from pingpong.game_objects.testobjs import player, table, net, ball
-from engine.gl.drawable import cube, Point3D
+
+from engine.gl.drawable import cube, box, Point3D
 from engine.gl.shader import Shader, Pipeline
 from engine.gl.camera import Camera
 from engine.gl.obj_loader import OBJ_to_shape
 from engine.gl.constants import WIDTH, HEIGHT
 from engine.gameloop.VBOGameLoop import VBOGameLoop
 from engine.gameloop.GameLoop import GameLoop
+
+from game.drawables import drawables
 
 # Game Variables
 GAME_PACE_SCALAR = 1.
@@ -21,19 +27,21 @@ gameDisplay = pygame.display.set_mode((WIDTH, HEIGHT), pygame.DOUBLEBUF|pygame.O
 pygame.display.set_caption('Ping Pong')
 clock = pygame.time.Clock()
 
-model = r'C:\Users\Alex\Documents\pingpong\assets\pingponggame\PingPongPaddle.obj'
-c = cube(.5, Point3D(-.25, -.25, .25))
-drawables = {c}
+# model = r'C:\Users\Alex\Documents\pingpong\assets\pingponggame\Paddle.obj'
+# paddle = OBJ_to_shape(model)
+# # paddle.center_and_normalize()
+# c = cube(.5, Point3D(-.25, -.25, .25))
+# c.gen_normals()
 
 
 vert = Shader('litvert', GL_VERTEX_SHADER)
-frag = Shader('fragment_default', GL_FRAGMENT_SHADER)
+frag = Shader('litfrag', GL_FRAGMENT_SHADER)
 pipeline = Pipeline(vert, frag)
 pipeline.vao = ''
 camera = Camera()
-camera.move(0, 0, -2)
+camera.move(0, 0, -3)
 
-for d in drawables:
+for d in drawables.values():
     pipeline.add_model(d)
 
 with VBOGameLoop([pipeline], cameras=[camera]) as loop:
@@ -54,22 +62,22 @@ with VBOGameLoop([pipeline], cameras=[camera]) as loop:
         mv = .1
         mmv = -.1
         if event.key == pygame.K_LEFT:
-            for d in drawables:
+            for d in drawables.values():
                 d.offset = glm.translate(d.offset, glm.vec3(mv, 0., 0.))
         if event.key == pygame.K_RIGHT:
-            for d in drawables:
+            for d in drawables.values():
                 d.offset = glm.translate(d.offset, glm.vec3(mmv, 0., 0.))
         if event.key == pygame.K_DOWN:
-            for d in drawables:
+            for d in drawables.values():
                 d.offset = glm.translate(d.offset, glm.vec3(0., mv, 0.))
         if event.key == pygame.K_UP:
-            for d in drawables:
+            for d in drawables.values():
                 d.offset = glm.translate(d.offset, glm.vec3(0., mmv, 0.))
         if event.key == pygame.K_z:
-            for d in drawables:
+            for d in drawables.values():
                 d.offset = glm.translate(d.offset, glm.vec3(0., 0., mv))
         if event.key == pygame.K_x:
-            for d in drawables:
+            for d in drawables.values():
                 d.offset = glm.translate(d.offset, glm.vec3(0., 0., mmv))
 
         if event.key == pygame.K_SPACE:

@@ -21,6 +21,7 @@ def _pipeflags(flags):
         return 0
     return flags
 
+
 def compile(name, GL_FLAGS):
     try:
         here = os.path.dirname(os.path.abspath(__file__))
@@ -29,6 +30,7 @@ def compile(name, GL_FLAGS):
     except Exception as e:
         raise ValueError(f"'{name}' is not an available shader.", e)
     return shaders.compileShader(code, _pipeflags(GL_FLAGS))
+
 
 def get_raw_code(name):
     try:

@@ -3,6 +3,7 @@ from .utils import ReprMixin
 from .utils import transformations
 import glm
 
+
 class Camera(ReprMixin):
     "A camera object. Use to position the viewport."
     def __init__(self):
@@ -112,7 +113,6 @@ class Camera(ReprMixin):
         if self._matrix is None:
             if self._transm is None:
                 self._transm = glm.translate(glm.mat4(), self._position)
-                print(self._transm)
             if self._zoomm is None:
                 self._zoomm = glm.mat4()
                 self._zoomm[0][0] = self._zoom

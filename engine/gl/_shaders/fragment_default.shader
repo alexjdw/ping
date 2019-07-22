@@ -1,4 +1,4 @@
-in vec3 vertex;
+#version 420
 in vec3 color;
 
 void main() {

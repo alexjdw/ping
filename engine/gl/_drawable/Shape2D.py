@@ -10,7 +10,7 @@ class Shape2D(ReprMixin):
     def __init__(self,
                  points,
                  texcoords=None,
-                 normals=None,
+                 normal=None,
                  mode=GL_TRIANGLES,
                  color=None):
         '''
@@ -37,7 +37,7 @@ class Shape2D(ReprMixin):
                         f'''{points} has the wrong number of vertexes.
                         Break your polygons into quads of len=4,
                         then smoosh them together. Example:\n
-                        \t[p1,p2,p3,p4, # first quad\n
+                        \t[p1,p2,p3,p4,  # first quad\n
                         \t p5,p6,p7,p8]  # second quad, etc.''')
         self.mode = mode
         self.points = points
@@ -72,10 +72,8 @@ class Shape2D(ReprMixin):
             return
 
         vbo = []
-        try:
-            arr_format = self.points[0].compile_VBO(force=True)
-        except IndexError as e:
-            return
+        arr_format = self.points[0].compile_VBO(force=True)
+
 
         for p in self.points:
             p.compile_VBO()
