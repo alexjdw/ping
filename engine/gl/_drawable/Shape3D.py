@@ -100,6 +100,7 @@ class Shape3D(ReprMixin):
         self.offset[3][0] = self.offset[3][0] + x
         self.offset[3][1] = self.offset[3][1] + y
         self.offset[3][2] = self.offset[3][2] + z
+        self._matrix = None
 
     def move_relative_to_camera(self, right, up, back):
         "Moves the shape relative to the camera position."

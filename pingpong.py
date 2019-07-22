@@ -13,6 +13,7 @@ from engine.gl.shader import Shader, Pipeline
 from engine.gl.camera import Camera
 from engine.gl.obj_loader import OBJ_to_shape
 from engine.gl.constants import WIDTH, HEIGHT
+from engine.gl.animations import GravityAnimator
 from engine.gameloop.VBOGameLoop import VBOGameLoop
 from engine.gameloop.GameLoop import GameLoop
 
@@ -41,10 +42,14 @@ pipeline.vao = ''
 camera = Camera()
 camera.move(0, 0, -3)
 
+gravity = GravityAnimator(.01)
+gravity.apply_to(drawables['ball'])
+
 for d in drawables.values():
     pipeline.add_model(d)
 
 with VBOGameLoop([pipeline], cameras=[camera]) as loop:
+    loop.animators.append(gravity)
     def handle_mouse(loop, event):
         if not pygame.mouse.get_pressed()[0]:
             return

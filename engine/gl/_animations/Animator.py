@@ -2,11 +2,11 @@ from ..utils import ReprMixin
 
 class Animator(ReprMixin):
     'Base class template for animations.'
-    def __init__(self):
-        self.models = []
+    def __init__(self, *args, **kwargs):
+        self.targets = []
 
     def step(self):
         pass
 
     def apply_to(self, target):
-        self.models.append(target)
+        self.targets.append(target)
