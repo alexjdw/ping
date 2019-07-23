@@ -194,7 +194,7 @@ class Shape3D(ReprMixin):
 
 
 # Alternate constructors
-def box(height, width, depth, first_point, color=None):
+def box(width, height, depth, first_point, color=None):
     'Constructs a rectangular box.'
     h = glm.vec3(height, 0, 0)
     w = glm.vec3(0, width, 0)

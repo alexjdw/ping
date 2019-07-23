@@ -14,6 +14,8 @@ from engine.gl.camera import Camera
 from engine.gl.obj_loader import OBJ_to_shape
 from engine.gl.constants import WIDTH, HEIGHT
 from engine.gl.animations import GravityAnimator
+from engine.gl.collision import CollisionBox, CollisionFrame, CollisionSystem
+from engine.gl.collision_handlers import bounce
 from engine.gameloop.VBOGameLoop import VBOGameLoop
 from engine.gameloop.GameLoop import GameLoop
 
@@ -40,11 +42,13 @@ frag = Shader('litfrag', GL_FRAGMENT_SHADER)
 pipeline = Pipeline(vert, frag)
 pipeline.vao = ''
 camera = Camera()
-camera.move(0, 0, -3)
+camera.move(0, .3, -2)
+# camera.rotate(0, 0, 30)
 
 gravity = GravityAnimator(.01)
 gravity.apply_to(drawables['ball'])
 
+collision_system = CollisionSystem()
 for d in drawables.values():
     pipeline.add_model(d)
 

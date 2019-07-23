@@ -1,7 +1,14 @@
 from .utils import ReprMixin
 
-class CollisionSystem(list, ReprMixin):
+
+class CollisionSystem(ReprMixin):
     "A grouping of objects that can possibly collide."
+    def __init__(self):
+        self.areas = []
+
+    def __setitem__(self, i, val):
+        self.areas.__setitem__(i, val)
+
     def detect(self):
         collisions = []
         areas = self.areas.copy()
@@ -14,9 +21,9 @@ class CollisionSystem(list, ReprMixin):
 
         for a, b in collisions:
             if self.handlers[a] is not None:
-                a.handle_collision(b)
+                self.handlers[a](a, b)
             if self.handlers[b] is not None:
-                b.handle_collision(a)
+                self.handlers[b](b, a)
 
     def add_collision(self, obj, handler=None):
         ''':param obj: The collision object (not the model)
@@ -26,6 +33,15 @@ class CollisionSystem(list, ReprMixin):
 
     def set_handler(self, obj, handler):
         self.handlers[obj] = handler
+
+    def __getitem__(self, i):
+        return self.areas[i]
+
+    def __delitem__(self, i):
+        del self.areas[i]
+
+    def __len__(self):
+        return len(self.areas)
 
 
 class CollisionFrame(list, ReprMixin):

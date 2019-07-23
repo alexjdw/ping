@@ -21,7 +21,7 @@ class Camera(ReprMixin):
 
     def move(self, x, y, z):
         'Moves the camera (x, y, z) units from its current position in world space.'
-        self._position = self._position + (x, y, z)
+        self._position = self._position - glm.vec3(x, y, -1 * z)
         self._transm = None
 
     def relative_move(self, right, up, forward):
@@ -120,9 +120,9 @@ class Camera(ReprMixin):
                 self._zoomm[2][2] = self._zoom
             if self._rotm is None:
                 self._rotm = transformations.euler_matrix(
-                                -1 * self._roll,
                                 -1 * self._yaw,
                                 -1 * self._pitch,
+                                -1 * self._roll,
                                 'szyx')
             self._matrix = self._transm * self._zoomm * self._rotm
 
