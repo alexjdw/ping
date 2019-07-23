@@ -132,7 +132,7 @@ class VBOGameLoop(GameLoop):
     def animate(self):
         for ani in self.animators:
             ani.step()
-    
+
     def cleanup(self):
         pass
 

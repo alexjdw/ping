@@ -14,7 +14,5 @@ class GravityAnimator(PhysicsAnimator):
             for i in range(steps):
                 self.translatestack[i + 1] = self.translatestack[i] + self.translatestack[i + 1]
 
-
         for model in self.targets:
             model.move(*self.translatestack[-1])
-            print(self.translatestack[-1])
