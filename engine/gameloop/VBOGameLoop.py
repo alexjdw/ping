@@ -24,6 +24,7 @@ class VBOGameLoop(GameLoop):
         self.ambient_light_color = np.array((1.0, 1.0, 1.0))
         self.filters = filters if filters else []
         self.animators = []
+        self.collision_systems = []
 
         self._event_handlers = {}
         self.state = {}  # a dictionary for storing in-game variables.
@@ -132,6 +133,8 @@ class VBOGameLoop(GameLoop):
     def animate(self):
         for ani in self.animators:
             ani.step()
+        for coll in self.collision_systems:
+            coll.detect()
 
     def cleanup(self):
         pass

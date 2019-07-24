@@ -22,3 +22,11 @@ class PhysicsAnimator(Animator):
         for model in self.targets:
             model.rotate(self.rotatestack[-1])
             model.move(self.translatestack[-1])
+
+    def get_momentum(self):
+        return self.translatestack[-1]
+
+    def set_momentum(self, val):
+        self.translatestack[-1] = val
+
+    momentum = property(get_momentum, set_momentum)

@@ -13,13 +13,10 @@ from engine.gl.shader import Shader, Pipeline
 from engine.gl.camera import Camera
 from engine.gl.obj_loader import OBJ_to_shape
 from engine.gl.constants import WIDTH, HEIGHT
-from engine.gl.animations import GravityAnimator
-from engine.gl.collision import CollisionBox, CollisionFrame, CollisionSystem
-from engine.gl.collision_handlers import bounce
 from engine.gameloop.VBOGameLoop import VBOGameLoop
 from engine.gameloop.GameLoop import GameLoop
 
-from game.drawables import drawables
+from game.drawables import drawables, collision_system, gravity
 
 # Game Variables
 GAME_PACE_SCALAR = 1.
@@ -45,15 +42,13 @@ camera = Camera()
 camera.move(0, .3, -2)
 # camera.rotate(0, 0, 30)
 
-gravity = GravityAnimator(.01)
-gravity.apply_to(drawables['ball'])
-
-collision_system = CollisionSystem()
 for d in drawables.values():
     pipeline.add_model(d)
 
 with VBOGameLoop([pipeline], cameras=[camera]) as loop:
     loop.animators.append(gravity)
+    loop.collision_systems.append(collision_system)
+
     def handle_mouse(loop, event):
         if not pygame.mouse.get_pressed()[0]:
             return
@@ -91,7 +86,6 @@ with VBOGameLoop([pipeline], cameras=[camera]) as loop:
 
         if event.key == pygame.K_SPACE:
             pass
-
 
     from collections import deque
     loop.state['pos'] = deque()

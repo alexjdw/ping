@@ -1,2 +1,8 @@
+import glm
+
+
 def bounce(self, other):
-    self.momentum = self.momentum * glm.vec3(.95, -.95, .95)
+    for t in self.handler_targets:
+        print(">", t.momentum)
+        t.momentum = t.momentum * glm.vec3(.95, -.95, .95)
+        print(">>", t.momentum)

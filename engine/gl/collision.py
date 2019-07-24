@@ -1,4 +1,5 @@
 from .utils import ReprMixin
+import glm
 
 
 class CollisionSystem(ReprMixin):
@@ -6,36 +7,31 @@ class CollisionSystem(ReprMixin):
     def __init__(self):
         self.areas = []
 
-    def __setitem__(self, i, val):
-        self.areas.__setitem__(i, val)
-
     def detect(self):
         collisions = []
         areas = self.areas.copy()
 
         while len(areas):
             a = areas.pop()
-            for b in self.areas:
+            for b in areas:
+                assert a is not b
                 if a.detect_collision(b):
                     collisions.append((a, b))
 
         for a, b in collisions:
-            if self.handlers[a] is not None:
-                self.handlers[a](a, b)
-            if self.handlers[b] is not None:
-                self.handlers[b](b, a)
+            if a.handler is not None:
+                a.handler(a, b)
+            elif b.handler is not None:
+                b.handler(b, a)
 
-    def add_collision(self, obj, handler=None):
-        ''':param obj: The collision object (not the model)
-        :param handler: A function to call on collision.'''
-        assert hasattr(obj, 'detect_collision')
-        self.handlers[obj] = handler
-
-    def set_handler(self, obj, handler):
-        self.handlers[obj] = handler
+    def add(self, area):
+        self.areas.append(area)
 
     def __getitem__(self, i):
         return self.areas[i]
+
+    def __setitem__(self, i, val):
+        self.areas.__setitem__(i, val)
 
     def __delitem__(self, i):
         del self.areas[i]
@@ -53,6 +49,27 @@ class CollisionFrame(list, ReprMixin):
 
 
 class CollisionBox(ReprMixin):
+    @classmethod
+    def from_shape(cls, shape, suppress_no_collision_formula=False):
+        "Creates a bounding box from the shape."
+        mmin = glm.vec3(shape.shapes[0].points[0].vertex)
+        mmax = glm.vec3(mmin)
+        for face in shape.shapes:
+            for point in face.points:
+                v = point.vertex
+                mmin.x = min(mmin.x, v.x)
+                mmin.y = min(mmin.y, v.y)
+                mmin.z = min(mmin.z, v.z)
+                mmax.x = max(mmax.x, v.x)
+                mmax.y = max(mmax.y, v.y)
+                mmax.z = max(mmax.z, v.z)
+        size = mmax - mmin
+        box = cls(size.x, size.y, size.z, suppress_no_collision_formula)
+        print("Bounding box created with sizes: \n", size, " and offset: \n", mmin)
+        box.attach_to_shape(shape)
+        box.base_offset = mmin
+        return box
+
     def __init__(self, width, height, depth,
                  suppress_no_collision_formula=False):
         self.base_offset = glm.vec3(0., 0., 0.)
@@ -63,6 +80,8 @@ class CollisionBox(ReprMixin):
         self.glueOffset = None
         self.boundingBox = False
         self.supress = suppress_no_collision_formula
+        self.handler_targets = []
+        self.handler=None
 
     def attach_to_point(self, point):
         self.gluePoint = point
@@ -76,12 +95,11 @@ class CollisionBox(ReprMixin):
         self.gluePoint = None
         self.glueShape = shape
 
-    def attach_as_bounding_box(self, shape, *points):
+    def attach_as_animated_bounding_box(self, shape, *points):
         '''
         Note: this is meant to dynamically set a bounding box for an
-        object that deforms and is quite expensive. If possible, calculate
-        a static bounding box ahead of time and use attach_to_point
-        or attach_to_shape.
+        object that deforms and is quite expensive. For a static bounding
+        box, use the alternate constructor.
 
         :param shape: the shape to attach to.
         :param *points: points to check for minimum/maximum x, y, and z values.
@@ -101,18 +119,12 @@ class CollisionBox(ReprMixin):
         self.boundingPoints = None
         self.detect_collision = CollisionBox.detect_collision
 
-    @classmethod
-    def from_Shape3D(cls, shape):
-        # TODO
-        pass
-
     @property
     def base(self):
-        base = self.base_offset
         if self.gluePoint is not None:
-            base = gluePoint.vertex + base
+            base = self.gluePoint.vertex + self.base_offset
         elif self.glueShape is not None:
-            base = glueShape.offset + base
+            base = self.glueShape.offset[3].xyz + self.base_offset
             if self.boundingBox:
                 xmin = xmax = self.boundingPoints[0].vertex.x
                 ymin = ymax = self.boundingPoints[0].vertex.y
@@ -135,10 +147,10 @@ class CollisionBox(ReprMixin):
             return box_box_collision(self, target)
 
         elif isinstance(target, CollisionSphere):
-            pass
+            return box_sphere_collision(self, target)
         elif not self.suppress_errors:
             raise TypeError("CollisionBox can't collide with target")
-        return False
+        return False  # return no collision if the dev doesn't want an error
 
 
 # ################### ###
@@ -159,9 +171,12 @@ def box_box_collision(a, b):
     afar = anear + a.size    # my far corner
     bnear = b.base         # targetbox near corner
     bfar = bnear + b.size  # targetbox far corner
-    return (anear.x <= bfar.x and afar.x >= bnear.x) and \
-           (anear.x <= bfar.y and afar.y >= bnear.y) and \
-           (anear.z <= bfar.z and afar.z >= bnear.z)
+    print(anear.x <= bfar.x and afar.x >= bnear.x and \
+           anear.y <= bfar.y and afar.y >= bnear.y and \
+           anear.z <= bfar.z and afar.z >= bnear.z)
+    return anear.x <= bfar.x and afar.x >= bnear.x and \
+           anear.y <= bfar.y and afar.y >= bnear.y and \
+           anear.z <= bfar.z and afar.z >= bnear.z
 
 
 def box_sphere_collision(box, sph):
