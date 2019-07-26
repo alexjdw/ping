@@ -52,6 +52,7 @@ class VAO(ReprMixin):
         for arg in self.vptr_args:
             arg[4] = stride * sizeof(ctypes.c_float)
 
+
     def add_VBO(self, VBO):
         if not (self._bound):
             raise VAOError("VAO is not currently bound.")

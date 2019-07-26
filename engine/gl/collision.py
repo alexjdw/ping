@@ -49,9 +49,14 @@ class CollisionFrame(list, ReprMixin):
 
 
 class CollisionBox(ReprMixin):
+    '''
+    A rectangle used for collision, represented by a point, offset,
+    and size. The rectangle lays flat in the coordinate system;
+    this greatly improves speed and simplifies the math.
+    '''
     @classmethod
     def from_shape(cls, shape, suppress_no_collision_formula=False):
-        "Creates a bounding box from the shape."
+        "Creates a static bounding box around the shape."
         mmin = glm.vec3(shape.shapes[0].points[0].vertex)
         mmax = glm.vec3(mmin)
         for face in shape.shapes:
@@ -99,7 +104,9 @@ class CollisionBox(ReprMixin):
         '''
         Note: this is meant to dynamically set a bounding box for an
         object that deforms and is quite expensive. For a static bounding
-        box, use the alternate constructor.
+        box, use the alternate constructor. In production, you can optimize
+        by making a series of static collision boxes that track with the
+        animations.
 
         :param shape: the shape to attach to.
         :param *points: points to check for minimum/maximum x, y, and z values.
@@ -145,12 +152,11 @@ class CollisionBox(ReprMixin):
     def detect_collision(self, target):
         if isinstance(target, CollisionBox):
             return box_box_collision(self, target)
-
         elif isinstance(target, CollisionSphere):
             return box_sphere_collision(self, target)
         elif not self.suppress_errors:
             raise TypeError("CollisionBox can't collide with target")
-        return False  # return no collision if the dev doesn't want an error
+        return False  # no way to detect collision
 
 
 # ################### ###
@@ -171,9 +177,6 @@ def box_box_collision(a, b):
     afar = anear + a.size    # my far corner
     bnear = b.base         # targetbox near corner
     bfar = bnear + b.size  # targetbox far corner
-    print(anear.x <= bfar.x and afar.x >= bnear.x and \
-           anear.y <= bfar.y and afar.y >= bnear.y and \
-           anear.z <= bfar.z and afar.z >= bnear.z)
     return anear.x <= bfar.x and afar.x >= bnear.x and \
            anear.y <= bfar.y and afar.y >= bnear.y and \
            anear.z <= bfar.z and afar.z >= bnear.z

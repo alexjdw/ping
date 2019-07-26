@@ -7,6 +7,7 @@ from OpenGL.GL import shaders
 from OpenGL.arrays.vbo import VBO
 from .Point3D import Point3D
 from .Rect2D import Rect2D
+from .Shape2D import Shape2D
 from .. import shader_presets
 from ..utils import ReprMixin
 
@@ -41,7 +42,7 @@ class Shape3D(ReprMixin):
         self.mode = mode
         self._VAO = None
         self._VBO_is_compiled = False
-        self._VBO_contexts = []
+        # self._VBO_contexts = []
 
     def GLDraw(self):
         "Draws the shape. Old-style drawing mechanism. Deprecated."
@@ -80,7 +81,7 @@ class Shape3D(ReprMixin):
         The transform matrix is a way to transform of an object
         at draw time without overwriting all of its members.
 
-        This is calculated lazily; only if ._matrix doesn't exist, create it.
+        This is calculated lazily only if ._matrix doesn't exist, create it.
         Modifying the offset, rotate, or scale will reset the value of _matrix
         to None and cause it to recalculate the next time it's used. This
         avoids repetitive calculations for objects that don't move.
@@ -145,21 +146,22 @@ class Shape3D(ReprMixin):
                 if count < 3:
                     verts.append(point.vertex)
                     count += 1
+            shape.normal = glm.normalize(
+                glm.cross(
+                    verts[1] - verts[0],
+                    verts[2] - verts[0]
+                    ))
+            for point in shape.points:
                 if point not in pointd:
                     pointd[point] = [shape.normal]
                 else:
                     pointd[point].append(shape.normal)
             if count < 3:
                 raise ValueError("Unable to calculate normal for shape with < 3 verticies. (It's not a viable surface)")
-            shape.normal = glm.normalize(
-                glm.cross(
-                    verts[1] - verts[0],
-                    verts[2] - verts[0]
-                    ))
         for point, norms in pointd.items():
             if point.normal is None:
                 point.normal = sum(verts) / len(verts)
-    
+
     def center_and_normalize(self, scale=1.0):
         '''
         Scales down the object to fit in world space, 
@@ -233,5 +235,110 @@ def pyramid(base_len, base_wid, height, first_point, color=None):
     pass
 
 
-def sphere(radius, first_point, color=None):
-    return cube(radius * 2, first_point, color)
+def sphere(radius, first_point, detail=2, color=None):
+    def middle_point(point_1, point_2):
+        """ Find a middle point and project to the unit sphere """
+
+        # We check if we have already cut this edge first
+        # to avoid duplicated verts
+        smaller_index = min(point_1, point_2)
+        greater_index = max(point_1, point_2)
+
+        key = '{0}-{1}'.format(smaller_index, greater_index)
+
+        if key in middle_point_cache:
+            return middle_point_cache[key]
+
+        # If it's not in cache, then we can cut it
+        vert_1 = verts[point_1]
+        vert_2 = verts[point_2]
+        middle = [sum(i)/2 for i in zip(vert_1.vertex, vert_2.vertex)]
+
+        verts.append(icoso_vertex(*middle))
+
+        index = len(verts) - 1
+        middle_point_cache[key] = index
+
+        return index
+
+    def icoso_vertex(x, y, z):
+        'Return vertex coordinates fixed to the unit sphere'
+        length = glm.sqrt(x * x + y * y + z * z)
+
+        return Point3D(
+            x * radius / length,
+            y * radius / length,
+            z * radius / length,
+        )
+
+    middle_point_cache = {}
+    PHI = (1 + glm.sqrt(5)) / 2
+    verts = [
+            icoso_vertex(-1,  PHI, 0),
+            icoso_vertex( 1,  PHI, 0),
+            icoso_vertex(-1, -PHI, 0),
+            icoso_vertex( 1, -PHI, 0),
+
+            icoso_vertex(0, -1, PHI),
+            icoso_vertex(0,  1, PHI),
+            icoso_vertex(0, -1, -PHI),
+            icoso_vertex(0,  1, -PHI),
+
+            icoso_vertex( PHI, 0, -1),
+            icoso_vertex( PHI, 0,  1),
+            icoso_vertex(-PHI, 0, -1),
+            icoso_vertex(-PHI, 0,  1),
+            ]
+
+    faces = [
+            # 5 faces around point 0
+            [0, 11, 5],
+            [0, 5, 1],
+            [0, 1, 7],
+            [0, 7, 10],
+            [0, 10, 11],
+
+            # Adjacent faces
+            [1, 5, 9],
+            [5, 11, 4],
+            [11, 10, 2],
+            [10, 7, 6],
+            [7, 1, 8],
+
+            # 5 faces around 3
+            [3, 9, 4],
+            [3, 4, 2],
+            [3, 2, 6],
+            [3, 6, 8],
+            [3, 8, 9],
+
+            # Adjacent faces
+            [4, 9, 5],
+            [2, 4, 11],
+            [6, 2, 10],
+            [8, 6, 7],
+            [9, 8, 1]]
+
+    for i in range(detail):
+        faces_subdiv = []
+
+        for tri in faces:
+            v1 = middle_point(tri[0], tri[1])
+            v2 = middle_point(tri[1], tri[2])
+            v3 = middle_point(tri[2], tri[0])
+
+            faces_subdiv.append([tri[0], v1, v3])
+            faces_subdiv.append([tri[1], v2, v1])
+            faces_subdiv.append([tri[2], v3, v2])
+            faces_subdiv.append([v1, v2, v3])
+
+        faces = faces_subdiv
+
+    for i, face in enumerate(faces):
+        # reuse faces to save a bit of memory here
+        faces[i] = Shape2D([verts[point] for point in face])
+
+    sphere = Shape3D(faces)
+    sphere.gen_normals()
+    # sphere.offset = glm.vec4(first_point.vertex, 1)
+    return sphere

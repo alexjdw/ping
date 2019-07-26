@@ -20,7 +20,7 @@ class VBOGameLoop(GameLoop):
         self.cameras = cameras if cameras else []
         self.view = cameras[0] if len(cameras) else None
         self.lights = lights if lights else []
-        self.ambient_light = .7
+        self.ambient_light = .1
         self.ambient_light_color = np.array((1.0, 1.0, 1.0))
         self.filters = filters if filters else []
         self.animators = []
@@ -48,7 +48,7 @@ class VBOGameLoop(GameLoop):
         # ### Pipeline ### #
         # Initialize the display
         # Compile models into VBOs
-        # Prep lights, cameras
+        # Prep lights, cameras, animations, and collision
         # Load model VBOs into VBAs by shader
         # Load filters
         # ## Main Loop
@@ -113,7 +113,7 @@ class VBOGameLoop(GameLoop):
                         GL_FALSE,
                         np.array(mdl.model_matrix))
                     vao.bind()
-                    vbo.bind()  # Binds the VBO.
+                    vbo.bind()
                     glDrawArrays(mode, 0, len(vbo))
                 self.flaggo = False
         # TODO Apply postprocessing filters

@@ -27,11 +27,12 @@ gameDisplay = pygame.display.set_mode((WIDTH, HEIGHT), pygame.DOUBLEBUF|pygame.O
 pygame.display.set_caption('Ping Pong')
 clock = pygame.time.Clock()
 
-# model = r'C:\Users\Alex\Documents\pingpong\assets\pingponggame\Paddle.obj'
-# paddle = OBJ_to_shape(model)
-# # paddle.center_and_normalize()
-# c = cube(.5, Point3D(-.25, -.25, .25))
-# c.gen_normals()
+model = r'C:\Users\Alex\Documents\pingpong\assets\pingponggame\Paddle.obj'
+paddle = OBJ_to_shape(model)
+paddle.gen_normals()
+# paddle.center_and_normalize()
+c = cube(.5, Point3D(-.25, -.25, .25))
+c.gen_normals()
 
 
 vert = Shader('litvert', GL_VERTEX_SHADER)
@@ -39,8 +40,8 @@ frag = Shader('litfrag', GL_FRAGMENT_SHADER)
 pipeline = Pipeline(vert, frag)
 pipeline.vao = ''
 camera = Camera()
-camera.move(0, .3, -2)
-# camera.rotate(0, 0, 30)
+camera.move(0, .1, -1.2)
+camera.rotate(0, 0, 20)
 
 for d in drawables.values():
     pipeline.add_model(d)
